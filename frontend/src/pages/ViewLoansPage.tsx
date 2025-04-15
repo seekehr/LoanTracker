@@ -60,14 +60,12 @@ export default function ViewLoansPage() {
                     }
                 }
                 
-                // Try parsing if strings, otherwise use as is
                 const loansArray = typeof data.loans === 'string' ? JSON.parse(data.loans) : (data.loans || []);
                 const loanedArray = typeof data.loaned === 'string' ? JSON.parse(data.loaned) : (data.loaned || []);
                 
                 setLoans(Array.isArray(loansArray) ? loansArray : []);
                 setLoaned(Array.isArray(loanedArray) ? loanedArray : []);
 
-                // Fetch profiles for all unique users
                 const uniqueIds = new Set<number>();
                 const allLoans = [
                     ...(Array.isArray(loansArray) ? loansArray : []),
@@ -99,7 +97,7 @@ export default function ViewLoansPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-background">
+            <div className="min-h-screen bg-white dark:bg-gray-900">
                 <Navbar />
                 <div className="flex relative isolate">
                     <div className="hidden lg:block flex-none">
@@ -108,8 +106,8 @@ export default function ViewLoansPage() {
                         </SidebarProvider>
                     </div>
                     <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:ml-14">
-                        <div className="max-w-4xl mx-auto">
-                            <h1 className="text-3xl font-bold mb-6">Loading...</h1>
+                        <div className="max-w-4xl mx-auto text-center">
+                            <h1 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">Loading Loans...</h1>
                         </div>
                     </main>
                 </div>
@@ -118,7 +116,7 @@ export default function ViewLoansPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-white dark:bg-gray-900">
             <Navbar />
             <div className="flex relative isolate">
                 <div className="hidden lg:block flex-none">
@@ -134,16 +132,16 @@ export default function ViewLoansPage() {
                             </h1>
                         </div>
                         <Tabs defaultValue="loans" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/50 p-1 rounded-xl">
+                            <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                                 <TabsTrigger 
                                     value="loans" 
-                                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                    className="rounded-md py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
                                 >
                                     Loans
                                 </TabsTrigger>
                                 <TabsTrigger 
                                     value="loaned"
-                                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                    className="rounded-md py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
                                 >
                                     Loaned
                                 </TabsTrigger>
@@ -160,9 +158,9 @@ export default function ViewLoansPage() {
                                             />
                                         ))
                                     ) : (
-                                        <div className="col-span-2 bg-muted/40 backdrop-blur-sm rounded-xl p-4 sm:p-6 lg:p-8 text-center border border-border/50">
-                                            <p className="text-muted-foreground">
-                                                No loans found
+                                        <div className="col-span-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm rounded-lg p-6 sm:p-8 text-center">
+                                            <p className="text-gray-500 dark:text-gray-400">
+                                                You haven't taken out any loans yet.
                                             </p>
                                         </div>
                                     )}
@@ -180,9 +178,9 @@ export default function ViewLoansPage() {
                                             />
                                         ))
                                     ) : (
-                                        <div className="col-span-2 bg-muted/40 backdrop-blur-sm rounded-xl p-4 sm:p-6 lg:p-8 text-center border border-border/50">
-                                            <p className="text-muted-foreground">
-                                                No loans found
+                                        <div className="col-span-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm rounded-lg p-6 sm:p-8 text-center">
+                                            <p className="text-gray-500 dark:text-gray-400">
+                                                You haven't loaned out any money yet.
                                             </p>
                                         </div>
                                     )}

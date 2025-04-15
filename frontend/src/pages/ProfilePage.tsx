@@ -2,7 +2,9 @@ import { AppSidebar } from "@/components/AppSidebar";
 import Error from "@/components/Error";
 import { Navbar } from "@/components/Navbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -19,6 +21,32 @@ interface ProfileData {
     verified: boolean;
     verificationIdNumber: string;
 }
+
+interface DetailItemProps {
+    label: string;
+    value: React.ReactNode;
+    editable?: boolean;
+    editContent?: React.ReactNode;
+}
+
+const DetailItem: React.FC<DetailItemProps> = ({ label, value, editable, editContent }) => (
+    <div className="flex justify-between items-center py-3">
+        <span className="text-sm text-gray-600 dark:text-gray-300">{label}</span>
+        <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-900 dark:text-white text-right">{value}</span>
+            {editable && editContent && (
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                            <Pencil className="h-3 w-3 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400" />
+                        </Button>
+                    </DialogTrigger>
+                    {editContent}
+                </Dialog>
+            )}
+        </div>
+    </div>
+);
 
 export default function ProfilePage() {
     const [profileData, setProfileData] = useState<ProfileData | null>(null);
@@ -76,7 +104,7 @@ export default function ProfilePage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50/50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+            <div className="min-h-screen bg-white dark:bg-gray-900">
                 <Navbar />
                 <div className="flex relative isolate">
                     <div className="hidden lg:block flex-none">
@@ -86,8 +114,8 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex-1">
                         <main className="px-4 sm:px-6 lg:px-12 py-6 lg:ml-16">
-                            <div className="max-w-4xl mx-auto">
-                                <h1 className="text-3xl font-bold mb-6">Loading...</h1>
+                            <div className="max-w-xl mx-auto text-center">
+                                <h1 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">Loading...</h1>
                             </div>
                         </main>
                     </div>
@@ -101,7 +129,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50/50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+        <div className="min-h-screen bg-white dark:bg-gray-900">
             <Navbar />
             <div className="flex relative isolate">
                 <div className="hidden lg:block flex-none">
@@ -111,170 +139,113 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex-1">
                     <main className="px-4 sm:px-6 lg:px-12 py-6 lg:ml-16">
-                        <div className="max-w-[900px] mx-auto">
-                            <div className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/20 dark:border-white/10 shadow-xl">
-                                {/* Profile Header */}
-                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8">
-                                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-                                        <div className="relative">
-                                            <Avatar className="h-16 w-16">
-                                                <AvatarImage src={profileData?.pfp} alt={profileData?.displayName} className="object-cover" />
-                                                <AvatarFallback>{profileData?.displayName.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button 
-                                                        variant="outline" 
-                                                        size="icon"
-                                                        className="absolute -bottom-2 -right-2 h-7 w-7 rounded-full bg-background shadow-md hover:shadow-lg"
-                                                    >
-                                                        <Pencil className="h-3 w-3" />
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>Update Profile Picture</DialogTitle>
-                                                    </DialogHeader>
-                                                    <Input
-                                                        type="url"
-                                                        placeholder="Enter new profile picture URL"
-                                                        onChange={(e) => handleUpdate("pfp", e.target.value)}
+                        <div className="max-w-xl mx-auto space-y-8">
+                            <div className="flex flex-col items-center text-center mb-8">
+                                <div className="relative mb-4">
+                                    <Avatar className="h-24 w-24 border-2 border-gray-100 dark:border-gray-700 shadow-md">
+                                        <AvatarImage src={profileData?.pfp} alt={profileData?.displayName} className="object-cover" />
+                                        <AvatarFallback className="text-3xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300">{profileData?.displayName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button 
+                                                variant="outline" 
+                                                size="icon"
+                                                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600"
+                                            >
+                                                <Pencil className="h-4 w-4 text-gray-500 dark:text-gray-300" />
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                                            <DialogHeader>
+                                                <DialogTitle className="text-gray-900 dark:text-white">Update Profile Picture</DialogTitle>
+                                            </DialogHeader>
+                                            <Input
+                                                type="url"
+                                                placeholder="Enter new profile picture URL"
+                                                onChange={(e) => handleUpdate("pfp", e.target.value)}
+                                                className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
+                                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                    {profileData?.displayName}
+                                    {profileData?.verified ? (
+                                        <span title="Verified Account"><Check className="h-5 w-5 text-blue-500 dark:text-blue-400" /></span>
+                                    ) : (
+                                        <span title="Not Verified"><X className="h-5 w-5 text-red-500" /></span>
+                                    )}
+                                </h1>
+                                <p className="text-gray-600 dark:text-gray-400">@{profileData?.username}</p>
+                            </div>
+
+                            <Card className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-md rounded-lg overflow-hidden">
+                                <CardContent className="divide-y divide-gray-100 dark:divide-gray-700 p-0">
+                                    <div className="p-4">
+                                        <DetailItem 
+                                            label="Display Name" 
+                                            value={profileData.displayName} 
+                                            editable 
+                                            editContent={
+                                                <DialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                                                    <DialogHeader><DialogTitle className="text-gray-900 dark:text-white">Update Display Name</DialogTitle></DialogHeader>
+                                                    <Input 
+                                                        placeholder="Enter new display name" 
+                                                        defaultValue={profileData?.displayName} 
+                                                        onChange={(e) => handleUpdate("displayName", e.target.value)} 
+                                                        className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
                                                     />
                                                 </DialogContent>
-                                            </Dialog>
-                                        </div>
-                                        <div className="text-center sm:text-left">
-                                            <h2 className="text-xl font-semibold flex items-center justify-center sm:justify-start gap-2">
-                                                {profileData?.displayName}
-                                                <div className="relative group">
-                                                    {profileData?.verified ? (
-                                                        <>
-                                                            <Check className="h-5 w-5 text-blue-500" />
-                                                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-blue-500 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                                                                        Verified Account
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <X className="h-5 w-5 text-red-500" />
-                                                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-red-500 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                                                                        Not Verified
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </h2>
-                                            <p className="text-muted-foreground">@{profileData?.username}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Form Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Display Name */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Display Name</label>
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <div className="relative group">
-                                                    <input
-                                                        type="text"
-                                                        readOnly
-                                                        value={profileData?.displayName}
-                                                        className="w-full h-10 px-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 cursor-pointer group-hover:border-blue-500/50 transition-colors"
-                                                    />
-                                                    <div className="absolute right-3 top-2.5">
-                                                        <Pencil className="h-4 w-4 text-muted-foreground/50 group-hover:text-blue-500" />
-                                                    </div>
-                                                </div>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>Update Display Name</DialogTitle>
-                                                </DialogHeader>
-                                                <Input
-                                                    placeholder="Enter new display name"
-                                                    defaultValue={profileData?.displayName}
-                                                    onChange={(e) => handleUpdate("displayName", e.target.value)}
-                                                />
-                                            </DialogContent>
-                                        </Dialog>
-                                    </div>
-
-                                    {/* Username */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <div className="relative group">
-                                                    <input
-                                                        type="text"
-                                                        readOnly
-                                                        value={profileData?.username}
-                                                        className="w-full h-10 px-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 cursor-pointer group-hover:border-blue-500/50 transition-colors"
-                                                    />
-                                                    <div className="absolute right-3 top-2.5">
-                                                        <Pencil className="h-4 w-4 text-muted-foreground/50 group-hover:text-blue-500" />
-                                                    </div>
-                                                </div>
-                                            </DialogTrigger>
-                                            <DialogContent>
-                                                <DialogHeader>
-                                                    <DialogTitle>Update Username</DialogTitle>
-                                                </DialogHeader>
-                                                <Input
-                                                    placeholder="Enter new username"
-                                                    defaultValue={profileData?.username}
-                                                    onChange={(e) => handleUpdate("username", e.target.value)}
-                                                />
-                                            </DialogContent>
-                                        </Dialog>
-                                    </div>
-
-                                    {/* Account Created */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Account Created</label>
-                                        <input
-                                            type="text"
-                                            readOnly
-                                            value={new Date(profileData?.timeCreated).toLocaleDateString()}
-                                            className="w-full h-10 px-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50"
+                                            }
                                         />
                                     </div>
-
-                                    {/* Verification ID */}
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Verification ID</label>
-                                        <div className="relative">
-                                            <input
-                                                type={showVerificationId ? "text" : "password"}
-                                                readOnly
-                                                value={profileData?.verificationIdNumber}
-                                                className="w-full h-10 px-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50"
-                                            />
-                                            <div className="absolute right-3 top-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => setShowVerificationId(!showVerificationId)}
-                                                    className="h-6 w-6 p-0 hover:text-blue-500"
-                                                >
-                                                    {showVerificationId ? (
-                                                        <EyeOff className="h-4 w-4" />
-                                                    ) : (
-                                                        <Eye className="h-4 w-4" />
-                                                    )}
-                                                </Button>
-                                            </div>
+                                    <div className="p-4">
+                                        <DetailItem 
+                                            label="Username" 
+                                            value={`@${profileData.username}`} 
+                                            editable 
+                                            editContent={
+                                                <DialogContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                                                    <DialogHeader><DialogTitle className="text-gray-900 dark:text-white">Update Username</DialogTitle></DialogHeader>
+                                                    <Input 
+                                                        placeholder="Enter new username" 
+                                                        defaultValue={profileData?.username} 
+                                                        onChange={(e) => handleUpdate("username", e.target.value)} 
+                                                        className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
+                                                    />
+                                                </DialogContent>
+                                            }
+                                        />
+                                    </div>
+                                    <div className="p-4">
+                                        <DetailItem label="Account Created" value={new Date(profileData.timeCreated).toLocaleDateString()} />
+                                    </div>
+                                    <div className="p-4">
+                                        <DetailItem label="Account Verification" value={profileData.verified ? <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/40 dark:text-green-300 border-green-200 dark:border-green-700">Verified</Badge> : <Badge variant="destructive">Not Verified</Badge>} />
+                                    </div>
+                                    <div className="flex justify-between items-center p-4">
+                                        <span className="text-sm text-gray-600 dark:text-gray-300">Verification ID</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium text-gray-900 dark:text-white text-right">{showVerificationId ? profileData.verificationIdNumber : '••••••••••••'}</span>
+                                            <Button 
+                                                variant="ghost" 
+                                                size="icon" 
+                                                onClick={() => setShowVerificationId(!showVerificationId)}
+                                                className="h-6 w-6 p-0 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                                            >
+                                                {showVerificationId ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                            </Button>
                                         </div>
                                     </div>
-                                </div>
+                                </CardContent>
+                            </Card>
 
-                                {/* Logout Button */}
+                            <div className="mt-12 flex justify-center">
                                 <Button 
                                     onClick={handleLogout}
                                     variant="destructive"
-                                    className="w-full mt-8 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"
+                                    className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white w-full max-w-xs"
                                 >
                                     <LogOut className="h-4 w-4 mr-2" />
                                             Sign Out

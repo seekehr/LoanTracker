@@ -54,8 +54,7 @@ export function LoanCard({ loan, type, profile }: LoanCardProps) {
     }).format(loan.amount);
 
     return (
-        <div className="group rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md transition-all duration-300 p-6 hover:border-primary/50 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="rounded-lg border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-md p-6 relative overflow-hidden">
             <div className="relative flex items-start space-x-4">
                 {profile ? (
                     profile.pfp ? (
@@ -63,10 +62,10 @@ export function LoanCard({ loan, type, profile }: LoanCardProps) {
                             <img
                                 src={profile.pfp}
                                 alt={profile.displayName}
-                                className="w-12 h-12 rounded-full ring-2 ring-background"
+                                className="w-12 h-12 rounded-full ring-1 ring-gray-200 dark:ring-gray-700"
                             />
                             <div className="absolute -bottom-1 -right-1">
-                                <span className={`flex h-3 w-3 rounded-full ${
+                                <span className={`flex h-3 w-3 rounded-full border-2 border-white dark:border-gray-800 ${
                                     loan.paid
                                         ? "bg-green-500"
                                         : "bg-yellow-500"
@@ -75,11 +74,11 @@ export function LoanCard({ loan, type, profile }: LoanCardProps) {
                         </div>
                     ) : (
                         <div className="relative">
-                            <div className="w-12 h-12 rounded-full bg-primary/10 text-primary ring-2 ring-background flex items-center justify-center text-lg font-semibold group-hover:bg-primary/20 transition-colors">
+                            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-gray-600 flex items-center justify-center text-lg font-semibold">
                                 {profile.displayName[0].toUpperCase()}
                             </div>
                             <div className="absolute -bottom-1 -right-1">
-                                <span className={`flex h-3 w-3 rounded-full ${
+                                <span className={`flex h-3 w-3 rounded-full border-2 border-white dark:border-gray-800 ${
                                     loan.paid
                                         ? "bg-green-500"
                                         : "bg-yellow-500"
@@ -88,49 +87,49 @@ export function LoanCard({ loan, type, profile }: LoanCardProps) {
                         </div>
                     )
                 ) : (
-                    <div className="w-12 h-12 rounded-full bg-muted animate-pulse" />
+                    <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
                 )}
                 <div className="flex-1 space-y-3">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                            <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
                                 {profile?.displayName || "Loading..."}
                             </h3>
-                            <p className="text-xl font-bold text-primary">
-                                {formattedAmount} <span className="text-sm font-normal">{loan.currency}</span>
+                            <p className="text-xl font-bold text-gray-900 dark:text-white">
+                                {formattedAmount} <span className="text-sm font-normal text-gray-600 dark:text-gray-400">{loan.currency}</span>
                             </p>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                             loan.paid
-                                ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-100"
-                                : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-100"
+                                ? "bg-green-50 text-green-700 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-700"
+                                : "bg-yellow-50 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-700"
                         }`}>
                             {loan.paid ? "Paid" : "Pending"}
                         </span>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2 text-sm text-muted-foreground">
+                        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                             <div className="flex items-center space-x-2">
-                                <Clock className="h-4 w-4" />
+                                <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                                 <span>Created:</span>
                             </div>
-                            <p className="font-medium text-foreground">
+                            <p className="font-medium text-gray-900 dark:text-white">
                                 {format(createdDate, "PPP")}
                             </p>
                         </div>
-                        <div className="space-y-2 text-sm text-muted-foreground">
+                        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                             <div className="flex items-center space-x-2">
-                                <CreditCard className="h-4 w-4" />
+                                <CreditCard className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                                 <span>Expires:</span>
                             </div>
-                            <p className="font-medium text-foreground">
+                            <p className="font-medium text-gray-900 dark:text-white">
                                 {format(expiryDate, "PPP")}
                             </p>
                         </div>
                     </div>
                     {proofData.proofs?.length > 0 && (
-                        <div className="flex items-center space-x-2 text-sm text-muted-foreground pt-2 border-t">
-                            <FileText className="h-4 w-4" />
+                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-700">
+                            <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                             <span>
                                 {proofData.proofs.length} document{proofData.proofs.length !== 1 ? 's' : ''} attached
                             </span>

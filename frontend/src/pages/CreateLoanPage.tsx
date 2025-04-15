@@ -154,7 +154,7 @@ export default function CreateLoanPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/90 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+        <div className="min-h-screen bg-white dark:bg-gray-900">
             <Navbar />
             <div className="flex relative isolate">
                 <div className="hidden lg:block flex-none">
@@ -165,11 +165,11 @@ export default function CreateLoanPage() {
                 <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:ml-14">
                     <div className="max-w-2xl mx-auto">
                         <div className="flex items-center justify-between mb-8">
-                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-orange-600 dark:from-orange-500 dark:to-orange-300">
+                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#0044FF] to-[#60EFFF] dark:from-[#60EFFF] dark:to-[#0044FF]">
                                 Create New Loan
                             </h1>
                         </div>
-                        <div className="bg-white/5 dark:bg-gray-900/20 backdrop-blur-xl rounded-xl border border-white/10 dark:border-white/5 p-4 sm:p-6 lg:p-8 shadow-2xl">
+                        <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-md rounded-lg p-6 sm:p-8">
                             <Form {...form}>
                                 <form
                                     onSubmit={form.handleSubmit(onSubmit)}
@@ -180,7 +180,7 @@ export default function CreateLoanPage() {
                                         name="loanedId"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-foreground/90 dark:text-white/90">Recipient Username</FormLabel>
+                                                <FormLabel className="text-gray-700 dark:text-gray-300">Recipient Username</FormLabel>
                                                 <div className="relative">
                                                     <FormControl>
                                                         <Input
@@ -190,7 +190,7 @@ export default function CreateLoanPage() {
                                                                 field.onChange(e);
                                                                 checkUsername(e.target.value);
                                                             }}
-                                                            className="bg-white/5 dark:bg-gray-900/50 border-white/10 dark:border-white/10 focus:border-orange-500/50 dark:focus:border-orange-500/50 focus:ring-orange-500/20 dark:focus:ring-orange-500/20 placeholder:text-muted-foreground/50"
+                                                            className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
                                                         />
                                                     </FormControl>
                                                     {field.value && (
@@ -205,7 +205,7 @@ export default function CreateLoanPage() {
                                                     )}
                                                 </div>
                                                 {usernameValid && displayName && (
-                                                    <div className="flex items-center mt-2 text-sm text-muted-foreground/70 dark:text-white/70">
+                                                    <div className="flex items-center mt-2 text-sm text-gray-600 dark:text-gray-400">
                                                         {displayPfp ? (
                                                             <img
                                                                 src={displayPfp}
@@ -213,14 +213,14 @@ export default function CreateLoanPage() {
                                                                 className="w-5 h-5 rounded-full mr-2"
                                                             />
                                                         ) : (
-                                                            <div className="w-5 h-5 rounded-full bg-orange-500/10 text-orange-500 dark:bg-orange-500/20 dark:text-orange-400 flex items-center justify-center mr-2 text-xs">
+                                                            <div className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mr-2 text-xs font-medium">
                                                                 {displayName[0].toUpperCase()}
                                                             </div>
                                                         )}
                                                         <span>{displayName}</span>
                                                     </div>
                                                 )}
-                                                <FormMessage className="text-red-500 dark:text-red-400" />
+                                                <FormMessage className="text-red-600 dark:text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -230,17 +230,17 @@ export default function CreateLoanPage() {
                                         name="amount"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-foreground/90 dark:text-white/90">Amount</FormLabel>
+                                                <FormLabel className="text-gray-700 dark:text-gray-300">Amount</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="number"
                                                         step="0.01"
                                                         placeholder="Enter amount"
                                                         {...field}
-                                                        className="bg-white/5 dark:bg-gray-900/50 border-white/10 dark:border-white/10 focus:border-orange-500/50 dark:focus:border-orange-500/50 focus:ring-orange-500/20 dark:focus:ring-orange-500/20 placeholder:text-muted-foreground/50"
+                                                        className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
                                                     />
                                                 </FormControl>
-                                                <FormMessage className="text-red-500 dark:text-red-400" />
+                                                <FormMessage className="text-red-600 dark:text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -250,29 +250,29 @@ export default function CreateLoanPage() {
                                         name="currency"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-foreground/90 dark:text-white/90">Currency</FormLabel>
+                                                <FormLabel className="text-gray-700 dark:text-gray-300">Currency</FormLabel>
                                                 <Select
                                                     onValueChange={field.onChange}
                                                     defaultValue={field.value}
                                                 >
                                                     <FormControl>
-                                                        <SelectTrigger className="bg-white/5 dark:bg-gray-900/50 border-white/10 dark:border-white/10 focus:ring-orange-500/20 dark:focus:ring-orange-500/20">
-                                                            <SelectValue placeholder="Select currency" className="text-muted-foreground/70" />
+                                                        <SelectTrigger className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500">
+                                                            <SelectValue placeholder="Select currency" className="text-gray-500 dark:text-gray-400" />
                                                         </SelectTrigger>
                                                     </FormControl>
-                                                    <SelectContent className="bg-background/95 dark:bg-gray-900/95 border-white/10 dark:border-white/10 backdrop-blur-xl">
+                                                    <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white">
                                                         {currencies.map((currency) => (
                                                             <SelectItem
                                                                 key={currency}
                                                                 value={currency}
-                                                                className="focus:bg-orange-500/10 dark:focus:bg-orange-500/20"
+                                                                className="focus:bg-gray-100 dark:focus:bg-gray-700"
                                                             >
                                                                 {currency}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                <FormMessage className="text-red-500 dark:text-red-400" />
+                                                <FormMessage className="text-red-600 dark:text-red-500" />
                                             </FormItem>
                                         )}
                                     />
@@ -282,7 +282,7 @@ export default function CreateLoanPage() {
                                         name="timeExpires"
                                         render={({ field }) => (
                                             <FormItem className="flex flex-col">
-                                                <FormLabel className="text-foreground/90 dark:text-white/90">Expiry Time</FormLabel>
+                                                <FormLabel className="text-gray-700 dark:text-gray-300">Expiry Time</FormLabel>
                                                 <FormControl>
                                                     <ReactDatePicker
                                                         selected={field.value}
@@ -291,19 +291,24 @@ export default function CreateLoanPage() {
                                                         timeFormat="HH:mm"
                                                         timeIntervals={15}
                                                         dateFormat="MMMM d, yyyy h:mm aa"
-                                                        className="flex h-10 w-full rounded-md border bg-white/5 dark:bg-gray-900/50 border-white/10 dark:border-white/10 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus:border-orange-500/50 dark:focus:border-orange-500/50 focus:ring-orange-500/20 dark:focus:ring-orange-500/20 focus:outline-none"
+                                                        className="flex h-10 w-full rounded-md border bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                                                         placeholderText="Select expiry date and time"
                                                         minDate={new Date()}
+                                                        calendarClassName="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                                                        dayClassName={() => "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"}
+                                                        monthClassName={() => "text-gray-700 dark:text-gray-300"}
+                                                        timeClassName={() => "text-gray-700 dark:text-gray-300"}
+                                                        popperPlacement="bottom-start"
                                                     />
                                                 </FormControl>
-                                                <FormMessage className="text-red-500 dark:text-red-400" />
+                                                <FormMessage className="text-red-600 dark:text-red-500" />
                                             </FormItem>
                                         )}
                                     />
 
                                     <Button 
                                         type="submit" 
-                                        className="w-full bg-orange-500 hover:bg-orange-600 text-white dark:bg-orange-500/90 dark:hover:bg-orange-600/90 dark:text-white/90 transition-all duration-200"
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white transition-all duration-200"
                                     >
                                         Create Loan
                                     </Button>
