@@ -1,6 +1,5 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { inspect } from 'util';
 import { accDb, jwtSecret, loansDb } from '../../app.js';
 const router = express.Router();
 router.get('/', async (req, res) => {
@@ -53,8 +52,6 @@ router.get('/', async (req, res) => {
                 loaned.push(loan);
             }
         }
-        console.log(inspect(loans, { showHidden: false, depth: null, colors: true }));
-        console.log(inspect(loaned, { showHidden: false, depth: null, colors: true }));
         res.status(200).json({
             loans, loaned
         });

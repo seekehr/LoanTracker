@@ -27,30 +27,30 @@ const testimonials = [
 
 export function TestimonialSection() {
     return (
-        <section id="testimonials" className="py-20">
-            <div className="container px-4 mx-auto">
+        <section id="testimonials" className="py-24 bg-white dark:bg-gray-900 relative overflow-hidden">
+            <div className="container px-4 mx-auto relative z-10">
                 <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-3xl font-bold mb-4">What Our Users Say</h2>
-                    <p className="text-muted-foreground">
-            Join thousands of people who are taking control of their loans with LoanTracker.
+                    <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-white">What Our Users Say</h2>
+                    <p className="text-xl text-gray-600 dark:text-gray-400">
+                        Join thousands of people who are taking control of their loans with LoanTracker.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {testimonials.map((testimonial, index) => (
-                        <Card key={index} className="border-0 shadow-md">
-                            <CardContent className="p-6">
-                                <QuoteIcon className="h-8 w-8 text-primary/20 mb-4" />
-                                <p className="mb-6 text-foreground/90 italic">
-                  "{testimonial.content}"
+                        <Card key={index} className="group bg-gray-50 dark:bg-gray-800/50 border-0 shadow-lg hover:shadow-xl dark:shadow-gray-900/30 transition-all duration-300 backdrop-blur-sm">
+                            <CardContent className="p-8">
+                                <QuoteIcon className="h-8 w-8 text-[#0044FF] dark:text-[#60EFFF] opacity-30 mb-6 group-hover:scale-110 transition-transform duration-300" />
+                                <p className="mb-8 text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
+                                    "{testimonial.content}"
                                 </p>
                                 <div className="flex items-center">
-                                    <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium">
+                                    <div className="h-12 w-12 rounded-lg bg-[#0044FF]/10 dark:bg-[#0044FF]/20 text-[#0044FF] dark:text-[#60EFFF] flex items-center justify-center font-medium text-lg group-hover:scale-110 transition-transform duration-300">
                                         {testimonial.avatar}
                                     </div>
-                                    <div className="ml-3">
-                                        <h4 className="font-semibold">{testimonial.name}</h4>
-                                        <p className="text-sm text-muted-foreground">
+                                    <div className="ml-4">
+                                        <h4 className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</h4>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
                                             {testimonial.role}
                                         </p>
                                     </div>
@@ -60,6 +60,8 @@ export function TestimonialSection() {
                     ))}
                 </div>
             </div>
+            <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.02] dark:opacity-[0.04]"></div>
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#0044FF]/5 via-transparent to-[#60EFFF]/5"></div>
         </section>
     );
 }
