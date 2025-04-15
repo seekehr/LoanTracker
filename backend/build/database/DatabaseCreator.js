@@ -1,8 +1,8 @@
-import process from "node:process";
-import console from "node:console";
+import "dotenv/config";
 import { Kysely, MysqlDialect } from "kysely";
 import { createPool } from "mysql2";
-import "dotenv/config";
+import console from "node:console";
+import process from "node:process";
 import redis from "redis";
 import AccountsDatabaseManager from "./managers/AccountsDatabaseManager.js";
 import LoansDatabaseManager from "./managers/LoansDatabaseManager.js";
@@ -58,5 +58,14 @@ export default class DatabaseCreator {
         catch (error) {
             throw new Error("Error caught during initialisation: " + error);
         }
+    }
+    async synchronoseDatabases(accDb, loansDb) {
+        const accounts = await accDb.getAllAccounts();
+        for (const account of accounts) {
+            const loans = await loansDb.getLoansByAccountId(account.id);
+            const loaned = await loansDb.getLoansByAccountId(account.id);
+            await accDb.updateAccount(account.id, { loans: JSON.stringify(loans), loaned: JSON.stringify(loaned) });
+        }
+        console.log("Databases synchronised.");
     }
 }

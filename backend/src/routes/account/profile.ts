@@ -1,12 +1,11 @@
 import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { accDb, jwtSecret } from '../app.js';
+import { accDb, jwtSecret } from '../../app.js';
 
 const router = express.Router();
 
 router.get('/', async (req: Request, res: Response) => {
     const token = req.token;
-    console.log("Token: " + token);
     if (!token) {
         res.status(401).json({ error: 'No token provided' });
         return;
@@ -19,8 +18,26 @@ router.get('/', async (req: Request, res: Response) => {
             res.status(401).json({ error: 'Invalid token' });
             return;
         }
+
+        let username = decoded;
+        if (req.query["username"] && typeof(req.query["username"]) === 'string') {
+            username = req.query["username"];
+        } else if (req.query["id"] && typeof(req.query["id"]) === 'string') {
+            const id = Number(req.query["id"]);
+            if (isNaN(id) || id <= 0) {
+                res.status(400).json({ error: 'Invalid ID format' });
+                return;
+            }
+            const usernameFromId = await accDb.getUsernameFromID(id);
+            if (usernameFromId) {
+                username = usernameFromId;
+            } else {
+                res.status(404).json({ error: 'User not found' });
+                return;
+            }
+        }
         
-        const account = await accDb.getAccountFromUsername(decoded);
+        const account = await accDb.getAccountFromUsername(username);
 
         if (!account) {
             res.status(404).json({ error: 'Account not found' });

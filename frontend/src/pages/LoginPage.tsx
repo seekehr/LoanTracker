@@ -34,6 +34,7 @@ const LoginPage = () => {
                         description: "Welcome back!",
                     });
                     addCookie("token", data["token"] as string, TOKEN_COOKIE_EXPIRY);
+                    addCookie("not-new", "true", 31536000);
                     navigate("/");
                 } else {
                     toast({

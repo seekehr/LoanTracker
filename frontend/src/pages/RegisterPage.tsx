@@ -8,7 +8,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { addCookie, TOKEN_COOKIE_EXPIRY } from "@/lib/utils";
+import { addCookie, getCookie, TOKEN_COOKIE_EXPIRY, verifyName } from "@/lib/utils";
 import { Check, UserPlus, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -48,21 +48,6 @@ function verifyPassword(password: string): boolean {
     return /[^a-zA-Z0-9]/.test(password);
 }
 
-function verifyName(username: string): boolean {
-    if (username.length < 8 || username.length > 30) {
-        return false;
-    }
-
-    if (/\s/.test(username)) {
-        return false;
-    }
-
-    if (username === 'Loading...' || username === 'trending') {
-        return false;
-    }
-
-    return /^(?!.*[A-Z])[a-z0-9_]+$/.test(username);
-}
 
 function verifyDisplayName(name: string): boolean {
     if (name.length < 6 || name.length > 60) {
@@ -98,11 +83,20 @@ const RegisterPage = () => {
         }
     };
 
-    const checkUsername = useCallback(checkUsernameRaw, []);
+    const checkUsername = useCallback(checkUsernameRaw, [setUsernameValid]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-    
+
+        if (getCookie("not-new") === "true") {
+            toast({
+                variant: "destructive",
+                title: "Registration failed",
+                description: "Multiple accounts from the same IP address are not allowed",
+            });
+            return;
+        }
+        
         try {
             const response = await fetch("http://localhost:3000/register", {
                 method: "POST",
@@ -122,6 +116,7 @@ const RegisterPage = () => {
                         description: "Welcome!",
                     });
                     addCookie("token", data["token"] as string, TOKEN_COOKIE_EXPIRY);
+                    addCookie("not-new", "true", 31536000);
                     navigate("/login");
                 } else {
                     toast({
@@ -131,11 +126,19 @@ const RegisterPage = () => {
                     });
                 }
             } else {
-                toast({
-                    variant: "destructive",
-                    title: "Registration failed",
-                    description: "Please check your information and try again.",
-                });
+                if (response.status === 403) {
+                    toast({
+                        variant: "destructive",
+                        title: "Registration failed",
+                        description: "Multiple accounts from the same IP address are not allowed",
+                    });
+                } else {
+                    toast({
+                        variant: "destructive",
+                        title: "Registration failed",
+                        description: "Please check your information and try again.",
+                    });
+                }
             }
         } catch (error) {
             toast({

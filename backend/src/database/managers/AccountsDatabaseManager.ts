@@ -23,6 +23,7 @@ export default class AccountsDatabaseManager implements IDatabaseManager {
             country VARCHAR(60) NOT NULL,
             pfp VARCHAR(400),
             ip VARCHAR(45) NOT NULL,
+            loaned JSON NOT NULL,
             loans JSON NOT NULL,
             timeCreated BIGINT NOT NULL,
             verified BOOLEAN NOT NULL,
@@ -41,6 +42,7 @@ export default class AccountsDatabaseManager implements IDatabaseManager {
     async createAccount(newAccount: NewAccount): Promise<bigint> {
         try {
             const loans = JSON.stringify({loans: []});
+            const loaned = JSON.stringify({loaned: []});
             const timeCreated = Date.now();
             const account = {
                 username: newAccount.username,
@@ -49,7 +51,7 @@ export default class AccountsDatabaseManager implements IDatabaseManager {
                 displayName: newAccount.displayName,
                 country: newAccount.country,
                 ip: newAccount.ip,
-                loans, timeCreated, verified: false, idVerificationNumber: null, pfp: null
+                loans, loaned, timeCreated, verified: false, idVerificationNumber: null, pfp: null
             };
 
             const result = await this.db
@@ -90,6 +92,15 @@ export default class AccountsDatabaseManager implements IDatabaseManager {
             .executeTakeFirst();
     }
 
+    async getUsernameFromID(id: number): Promise<string | undefined> {
+        const result = await this.db
+            .selectFrom("accounts")
+            .select("username")
+            .where("id", '=', id)
+            .executeTakeFirst();
+        return result?.username;
+    }
+    
     async getIdFromUsername(username: string): Promise<number | undefined> {
         const result = await this.db
             .selectFrom("accounts")
@@ -117,11 +128,26 @@ export default class AccountsDatabaseManager implements IDatabaseManager {
         return result.numDeletedRows > 0;
     }
 
-    async updateAccount(account: Account, updates: object) {
+    async updateAccount(id: number, updates: object) {
         return await this.db
             .updateTable("accounts")
             .set(updates)
-            .where("id", '=', account.id)
+            .where("id", '=', id)
             .executeTakeFirst();
+    }
+
+    async getAccountsByIP(ip: string): Promise<Account[]> {
+        return await this.db
+            .selectFrom("accounts")
+            .selectAll()
+            .where("ip", '=', ip)
+            .execute();
+    }
+
+    async getAllAccounts(): Promise<Account[]> {
+        return await this.db
+            .selectFrom("accounts")
+            .selectAll()
+            .execute();
     }
 }

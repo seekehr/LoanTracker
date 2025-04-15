@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { LogIn, Menu, User, UserPlus, X } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
@@ -15,6 +15,11 @@ const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: stri
 export function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const hasToken = document.cookie.includes('token');
+    const navigate = useNavigate();
+
+    const handleNavigation = (path: string) => {
+        navigate(path);
+    };
 
     return (
         <nav className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b">
@@ -31,27 +36,24 @@ export function Navbar() {
                     {/* Desktop menu */}
                     <div className="hidden md:flex md:items-center md:justify-between flex-1">
                         <div className="flex items-center space-x-8 ml-12">
-                            <a
-                                href="#features"
+                            <button
+                                onClick={() => handleNavigation("/#features")}
                                 className="text-foreground/80 hover:text-primary transition-colors"
-                                onClick={(e) => scrollToSection(e, '#features')}
                             >
                                 Features
-                            </a>
-                            <a
-                                href="#testimonials"
+                            </button>
+                            <button
+                                onClick={() => handleNavigation("/#testimonials")}
                                 className="text-foreground/80 hover:text-primary transition-colors"
-                                onClick={(e) => scrollToSection(e, '#testimonials')}
                             >
                                 Testimonials
-                            </a>
-                            <a
-                                href="#pricing"
+                            </button>
+                            <button
+                                onClick={() => handleNavigation("/#pricing")}
                                 className="text-foreground/80 hover:text-primary transition-colors"
-                                onClick={(e) => scrollToSection(e, '#pricing')}
                             >
                                 Pricing
-                            </a>
+                            </button>
                         </div>
                         <div className="flex items-center space-x-3">
                             <ThemeSwitcher />

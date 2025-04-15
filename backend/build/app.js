@@ -1,8 +1,10 @@
 import express from 'express';
+import loginRouter from './routes/account/login.js';
+import profileRouter from "./routes/account/profile.js";
+import registerRouter from "./routes/account/register.js";
 import checkUsernameRouter from "./routes/check_username.js";
-import loginRouter from './routes/login.js';
-import profileRouter from "./routes/profile.js";
-import registerRouter from "./routes/register.js";
+import createLoanRouter from './routes/loan/create_loan.js';
+import viewLoansRouter from './routes/loan/view_loans.js';
 import cookieParser from 'cookie-parser';
 import cors from "cors";
 import "dotenv/config";
@@ -12,6 +14,7 @@ import DatabaseCreator from './database/DatabaseCreator.js';
 import { add_ip } from './routes/middleware/add_ip.js';
 import auth from './routes/middleware/auth.js';
 import RateLimiter from './routes/middleware/ratelimiter.js';
+import "./util/polyfills.js";
 const dbCreator = new DatabaseCreator();
 let db;
 let redisDb;
@@ -59,4 +62,6 @@ if (rateLimiter instanceof RateLimiter) {
     app.use('/login', rateLimiter.getRateLimitMiddleware("/login", 10, 5 * 1000), add_ip, loginRouter);
     // -
     app.use('/profile', rateLimiter.getRateLimitMiddleware("/profile", 10, 5 * 1000), auth, profileRouter);
+    app.use('/loans', rateLimiter.getRateLimitMiddleware("/loans", 10, 5 * 1000), auth, viewLoansRouter);
+    app.use('/create-loan', rateLimiter.getRateLimitMiddleware("/create-loan", 10, 5 * 1000), auth, createLoanRouter);
 }

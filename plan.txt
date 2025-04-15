@@ -5,5 +5,5 @@ loaner to the loaned guy that publicly displays the status of the loan. An 'APPR
 
 So basically, you can use this app to take and give loans.
 
-TODO: Fix profile page. Maybe change it up. Add a bit of life to the landing page.
+TODO: Fix profile page (Done). Maybe change it up. Add a bit of life to the landing page.
 Overall, tomorrow work on actually creating loans n stuff and we can add other stuff like auto-contact later.

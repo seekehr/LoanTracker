@@ -22,7 +22,7 @@ export function AppSidebar() {
     ];
 
     return (
-        <Sidebar variant="inset" className="mt-16">
+        <Sidebar variant="inset" className="relative mt-16 w-32">
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupLabel>LoanTracker</SidebarGroupLabel>

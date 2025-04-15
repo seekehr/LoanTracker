@@ -5,11 +5,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ToAuthRote } from "./components/ToAuthRoute.js";
 import { ThemeProvider } from "./context/ThemeContext.js";
+import CreateLoanPage from "./pages/CreateLoanPage.js";
 import Index from "./pages/IndexPage.js";
 import Login from "./pages/LoginPage.js";
 import NotFound from "./pages/NotFoundPage.js";
 import ProfilePage from "./pages/ProfilePage.js";
 import RegisterPage from "./pages/RegisterPage.js";
+import ViewLoansPage from "./pages/ViewLoansPage.js";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,8 @@ const App = () => (
                             }
                         />
                         <Route path="/profile" element={<ProfilePage />} />
+                        <Route path="/create-loan" element={<CreateLoanPage />} />
+                        <Route path="/manage-loans" element={<ViewLoansPage />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                         

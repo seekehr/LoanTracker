@@ -22,3 +22,19 @@ export function getCookie(key: string): string | undefined {
 
     return undefined;
 }
+
+export function verifyName(username: string): boolean {
+    if (username.length < 8 || username.length > 30) {
+        return false;
+    }
+
+    if (/\s/.test(username)) {
+        return false;
+    }
+
+    if (username === 'Loading...' || username === 'trending') {
+        return false;
+    }
+
+    return /^(?!.*[A-Z])[a-z0-9_]+$/.test(username);
+}

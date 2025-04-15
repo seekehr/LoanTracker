@@ -18,6 +18,7 @@ export default class AccountsDatabaseManager {
             country VARCHAR(60) NOT NULL,
             pfp VARCHAR(400),
             ip VARCHAR(45) NOT NULL,
+            loaned JSON NOT NULL,
             loans JSON NOT NULL,
             timeCreated BIGINT NOT NULL,
             verified BOOLEAN NOT NULL,
@@ -35,6 +36,7 @@ export default class AccountsDatabaseManager {
     async createAccount(newAccount) {
         try {
             const loans = JSON.stringify({ loans: [] });
+            const loaned = JSON.stringify({ loaned: [] });
             const timeCreated = Date.now();
             const account = {
                 username: newAccount.username,
@@ -43,7 +45,7 @@ export default class AccountsDatabaseManager {
                 displayName: newAccount.displayName,
                 country: newAccount.country,
                 ip: newAccount.ip,
-                loans, timeCreated, verified: false, idVerificationNumber: null, pfp: null
+                loans, loaned, timeCreated, verified: false, idVerificationNumber: null, pfp: null
             };
             const result = await this.db
                 .insertInto("accounts")
@@ -79,6 +81,14 @@ export default class AccountsDatabaseManager {
             .where("username", '=', username)
             .executeTakeFirst();
     }
+    async getUsernameFromID(id) {
+        const result = await this.db
+            .selectFrom("accounts")
+            .select("username")
+            .where("id", '=', id)
+            .executeTakeFirst();
+        return result?.username;
+    }
     async getIdFromUsername(username) {
         const result = await this.db
             .selectFrom("accounts")
@@ -101,11 +111,24 @@ export default class AccountsDatabaseManager {
             .executeTakeFirst();
         return result.numDeletedRows > 0;
     }
-    async updateAccount(account, updates) {
+    async updateAccount(id, updates) {
         return await this.db
             .updateTable("accounts")
             .set(updates)
-            .where("id", '=', account.id)
+            .where("id", '=', id)
             .executeTakeFirst();
+    }
+    async getAccountsByIP(ip) {
+        return await this.db
+            .selectFrom("accounts")
+            .selectAll()
+            .where("ip", '=', ip)
+            .execute();
+    }
+    async getAllAccounts() {
+        return await this.db
+            .selectFrom("accounts")
+            .selectAll()
+            .execute();
     }
 }

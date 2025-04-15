@@ -1,4 +1,5 @@
 import { sql } from "kysely";
+import { accDb } from "../../app.js";
 export default class LoansDatabaseManager {
     db;
     constructor(db) {
@@ -28,11 +29,11 @@ export default class LoansDatabaseManager {
             return false;
         }
     }
-    async createSalt(newLoan) {
+    async createLoan(newLoan) {
         try {
             const proofs = JSON.stringify({ proofs: [] });
             const timeCreated = Date.now();
-            const account = {
+            const loan = {
                 loanerId: newLoan.loanerId,
                 loanedId: newLoan.loanedId,
                 amount: newLoan.amount,
@@ -42,11 +43,12 @@ export default class LoansDatabaseManager {
             };
             const result = await this.db
                 .insertInto("loans")
-                .values(account)
+                .values(loan)
                 .executeTakeFirst();
             if (typeof (result.insertId) === "undefined" || result.insertId < 0) {
                 throw new Error("Invalid INSERT ID! Account may still be inserted.");
             }
+            await this.synchroniseAccounts(Number(result.insertId), newLoan.loanerId, newLoan.loanedId);
             return result.insertId;
         }
         catch (error) {
@@ -60,17 +62,57 @@ export default class LoansDatabaseManager {
             .where("id", '=', id)
             .executeTakeFirst() ?? new Error("No loan found for {" + id + "}.");
     }
-    async markPaid(id) {
+    async markPaid(loan) {
         try {
             const result = await this.db
                 .updateTable("loans")
                 .set({ paid: true })
-                .where("id", "=", id)
+                .where("id", "=", loan.id)
                 .executeTakeFirst();
+            await this.synchroniseAccountsDelete(loan.id, loan.loanerId, loan.loanedId);
             return result.numUpdatedRows > 0;
         }
         catch (error) {
             throw error instanceof Error ? "Could not update loan: " + error : new Error("Could not update loan!?!: " + String(error));
         }
+    }
+    async getLoansByAccountId(id) {
+        return await this.db
+            .selectFrom("loans")
+            .selectAll()
+            .where("loanerId", "=", id)
+            .execute();
+    }
+    async synchroniseAccounts(id, loanerId, loanedId) {
+        const loanedIds = [];
+        const loaneds = await this.getLoansByAccountId(loanerId);
+        for (const loaned of loaneds) {
+            loanedIds.push(loaned.id);
+        }
+        await accDb.updateAccount(loanerId, { loaned: JSON.stringify(loanedIds) });
+        const loanIds = [];
+        const loans = await this.getLoansByAccountId(loanedId);
+        for (const loan of loans) {
+            loanIds.push(loan.id);
+        }
+        await accDb.updateAccount(loanedId, { loans: JSON.stringify(loanIds) });
+    }
+    async synchroniseAccountsDelete(id, loanerId, loanedId) {
+        const loanedIds = [];
+        const loaneds = await this.getLoansByAccountId(loanerId);
+        for (const loaned of loaneds) {
+            if (loaned.id === id)
+                continue;
+            loanedIds.push(loaned.id);
+        }
+        await accDb.updateAccount(loanerId, { loaned: JSON.stringify(loanedIds) });
+        const loanIds = [];
+        const loans = await this.getLoansByAccountId(loanedId);
+        for (const loan of loans) {
+            if (loan.id === id)
+                continue;
+            loanIds.push(loan.id);
+        }
+        await accDb.updateAccount(loanedId, { loans: JSON.stringify(loanIds) });
     }
 }

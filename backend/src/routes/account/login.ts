@@ -1,8 +1,8 @@
 import express, { Router } from 'express';
-import { accDb, jwtSecret } from '../app.js'; // Assuming index.js exports these
-import SecurityGuard from '../database/SecurityGuard.js'; // Adjusted path based on register.ts
 import jwt from 'jsonwebtoken';
-import { INVALID_IP } from './middleware/add_ip.js';
+import { accDb, jwtSecret } from '../../app.js'; // Assuming index.js exports these
+import SecurityGuard from '../../database/SecurityGuard.js'; // Adjusted path based on register.ts
+import { INVALID_IP } from '../middleware/add_ip.js';
 
 const router: Router = express.Router();
 

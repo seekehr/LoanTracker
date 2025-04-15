@@ -1,18 +1,18 @@
 import crypto from "crypto";
 import express, { Router } from 'express';
 import jwt from 'jsonwebtoken';
-import { accDb, jwtSecret } from '../app.js'; // Import the initialized instance
-import { NewAccount } from '../database/Database.js';
-import SecurityGuard from '../database/SecurityGuard.js';
-import { INVALID_IP } from './middleware/add_ip.js';
+import { accDb, jwtSecret } from '../../app.js'; // Import the initialized instance
+import { NewAccount } from '../../database/Database.js';
+import SecurityGuard from '../../database/SecurityGuard.js';
+import { INVALID_IP } from '../middleware/add_ip.js';
 
 const router: Router = express.Router();
 
 router.post('/', async (req: express.Request, res: express.Response) => {
-    const username: string = typeof(req.headers["username"] === "string") ? req.headers["username"] as string : "Invalid.";
-    const password: string = typeof(req.headers["password"] === "string") ? req.headers["password"] as string : "Invalid.";
-    const displayName: string = typeof(req.headers["displayname"] === "string") ? req.headers["displayname"] as string : "Invalid.";
-    const country: string = typeof(req.headers["country"] === "string") ? req.headers["country"] as string : "Invalid.";
+    const username: string = typeof req.headers["username"] === "string" ? req.headers["username"] as string : "Invalid.";
+    const password: string = typeof req.headers["password"] === "string" ? req.headers["password"] as string : "Invalid.";
+    const displayName: string = typeof req.headers["displayname"] === "string" ? req.headers["displayname"] as string : "Invalid.";
+    const country: string = typeof req.headers["country"] === "string" ? req.headers["country"] as string : "Invalid.";
 
     let ip = req.verifiedIp;
     const errors: string[] = [];
@@ -44,7 +44,19 @@ router.post('/', async (req: express.Request, res: express.Response) => {
         const usernameExists = await accDb.checkUsername(username);
         if (usernameExists) {
             res.status(409).json({ error: 'Conflict', details: 'Username already exists' });
+            return;
         }
+
+        console.log("New: " + req.cookies["not-new"]);
+        // Check for existing accounts with the same IP
+        const existingAccountsWithIP = await accDb.getAccountsByIP(ip);
+        if (existingAccountsWithIP.length > 0) {
+            res.status(403).json({ 
+                error: 'Forbidden', 
+                details: 'Multiple accounts from the same IP address are not allowed' 
+            });
+            return;
+        } 
 
         const salt = Buffer.from(crypto.randomBytes(64)).toString('base64');
         const hashedPassword = await SecurityGuard.getHash(password, salt);

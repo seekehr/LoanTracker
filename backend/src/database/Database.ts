@@ -31,6 +31,7 @@ interface BaseAccountInterface {
 interface AccountsTable extends BaseAccountInterface {
     id: Generated<number>
     pfp: string|null
+    loaned: string
     loans: string
     timeCreated: ColumnType<Date, number, never>
     verified: boolean,
@@ -54,7 +55,7 @@ interface BaseLoanInterface {
     loanerId: number
     amount: number 
     currency: string
-    timeExpires: ColumnType<Date, number, never>
+    timeExpires: ColumnType<Date, bigint, never>
 }
 
 interface LoansTable extends BaseLoanInterface {

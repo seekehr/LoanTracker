@@ -1,5 +1,6 @@
+import { Kysely, sql } from "kysely";
+import { accDb } from "../../app.js";
 import { Database, Loan, NewLoan } from "../Database.js";
-import {Kysely, sql} from "kysely";
 import IDatabaseManager from "./IDatabaseManager.js";
 
 export default class LoansDatabaseManager implements IDatabaseManager {
@@ -34,11 +35,11 @@ export default class LoansDatabaseManager implements IDatabaseManager {
         }
     }
 
-    async createSalt(newLoan: NewLoan): Promise<bigint> {
+    async createLoan(newLoan: NewLoan): Promise<bigint> {
         try {
             const proofs = JSON.stringify({proofs: []});
             const timeCreated = Date.now();
-            const account = {
+            const loan = {
                 loanerId: newLoan.loanerId,
                 loanedId: newLoan.loanedId,
                 amount: newLoan.amount,
@@ -49,12 +50,13 @@ export default class LoansDatabaseManager implements IDatabaseManager {
 
             const result = await this.db
                 .insertInto("loans")
-                .values(account)
+                .values(loan)
                 .executeTakeFirst();
             if (typeof(result.insertId) === "undefined" || result.insertId < 0) {
                 throw new Error("Invalid INSERT ID! Account may still be inserted.");
             }
 
+            await this.synchroniseAccounts(Number(result.insertId), newLoan.loanerId, newLoan.loanedId);
             return result.insertId;
         } catch (error) {
             throw error instanceof Error ? error : new Error("\n(Invalid error type, creating error...): \n " + String(error));
@@ -69,18 +71,62 @@ export default class LoansDatabaseManager implements IDatabaseManager {
             .executeTakeFirst() ?? new Error("No loan found for {" + id + "}.")
     }
 
-    async markPaid(id: number): Promise<boolean> {
+    async markPaid(loan: Loan): Promise<boolean> {
         try {
             const result = await this.db
                 .updateTable("loans")
                 .set({ paid: true })
-                .where("id", "=", id)
+                .where("id", "=", loan.id)
                 .executeTakeFirst();
-
+            await this.synchroniseAccountsDelete(loan.id, loan.loanerId, loan.loanedId);
             return result.numUpdatedRows > 0;
         } catch (error) {
             throw error instanceof Error ? "Could not update loan: " + error : new Error("Could not update loan!?!: " + String(error));
         }
+    }
+
+    async getLoansByAccountId(id: number): Promise<Loan[]> {
+        return await this.db
+            .selectFrom("loans")
+            .selectAll()
+            .where("loanerId", "=", id)
+            .execute();
+    }
+
+    private async synchroniseAccounts(id: number, loanerId: number, loanedId: number) {
+        const loanedIds = [];
+        const loaneds = await this.getLoansByAccountId(loanerId);
+        for (const loaned of loaneds) {
+            loanedIds.push(loaned.id);
+        }
+
+        await accDb.updateAccount(loanerId, { loaned: JSON.stringify(loanedIds) });
+
+        const loanIds = [];
+        const loans = await this.getLoansByAccountId(loanedId);
+        for (const loan of loans) {
+            loanIds.push(loan.id);
+        }
+        await accDb.updateAccount(loanedId, { loans: JSON.stringify(loanIds) });
+    }
+
+    private async synchroniseAccountsDelete(id: number, loanerId: number, loanedId: number) {
+        const loanedIds = [];
+        const loaneds = await this.getLoansByAccountId(loanerId);
+        for (const loaned of loaneds) {
+            if (loaned.id === id) continue;
+            loanedIds.push(loaned.id);
+        }
+
+        await accDb.updateAccount(loanerId, { loaned: JSON.stringify(loanedIds) });
+
+        const loanIds = [];
+        const loans = await this.getLoansByAccountId(loanedId);
+        for (const loan of loans) {
+            if (loan.id === id) continue;
+            loanIds.push(loan.id);
+        }
+        await accDb.updateAccount(loanedId, { loans: JSON.stringify(loanIds) });
     }
 }
 
