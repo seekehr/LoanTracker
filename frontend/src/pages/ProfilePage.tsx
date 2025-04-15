@@ -10,7 +10,6 @@ import { getCookie } from "@/lib/utils";
 import { Check, Eye, EyeOff, LogOut, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import LoadingPage from "./LoadingPage";
 
 interface ProfileData {
     displayName: string;
@@ -76,7 +75,25 @@ export default function ProfilePage() {
     };
 
     if (loading) {
-        return <LoadingPage />;
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50/50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+                <Navbar />
+                <div className="flex relative isolate">
+                    <div className="hidden lg:block flex-none">
+                        <SidebarProvider>
+                            <AppSidebar />
+                        </SidebarProvider>
+                    </div>
+                    <div className="flex-1">
+                        <main className="px-4 sm:px-6 lg:px-12 py-6 lg:ml-16">
+                            <div className="max-w-4xl mx-auto">
+                                <h1 className="text-3xl font-bold mb-6">Loading...</h1>
+                            </div>
+                        </main>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     if (error || !profileData) {
@@ -84,29 +101,21 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="relative min-h-screen">
-            {/* Fixed background that covers entire viewport */}
-            <div className="fixed inset-0 bg-gradient-to-br from-blue-50/50 via-indigo-50/25 to-purple-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800" />
-            
-            {/* Content layer */}
-            <div className="relative flex flex-col min-h-screen">
-                <Navbar />
-                <div className="flex-1 flex">
-                    <div className="hidden lg:block w-64 h-[calc(100vh-4rem)] sticky top-16 border-r border-border/40 bg-background/60 backdrop-blur-sm">
-                        <SidebarProvider>
-                            <AppSidebar />
-                        </SidebarProvider>
-                    </div>
-
-                    <main className="flex-1 w-full">
-                        <div className="max-w-[1200px] mx-auto p-6">
-                            
-
-                            {/* Main Content */}
-                            <div className="bg-background/60 backdrop-blur-lg rounded-3xl p-8 border border-border/50 shadow-xl">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50/50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+            <Navbar />
+            <div className="flex relative isolate">
+                <div className="hidden lg:block flex-none">
+                    <SidebarProvider>
+                        <AppSidebar />
+                    </SidebarProvider>
+                </div>
+                <div className="flex-1">
+                    <main className="px-4 sm:px-6 lg:px-12 py-6 lg:ml-16">
+                        <div className="max-w-[900px] mx-auto">
+                            <div className="bg-white/80 dark:bg-gray-900/50 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/20 dark:border-white/10 shadow-xl">
                                 {/* Profile Header */}
-                                <div className="flex items-start justify-between mb-8">
-                                    <div className="flex items-center gap-4">
+                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8">
+                                    <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
                                         <div className="relative">
                                             <Avatar className="h-16 w-16">
                                                 <AvatarImage src={profileData?.pfp} alt={profileData?.displayName} className="object-cover" />
@@ -134,22 +143,22 @@ export default function ProfilePage() {
                                                 </DialogContent>
                                             </Dialog>
                                         </div>
-                                        <div>
-                                            <h2 className="text-xl font-semibold flex items-center gap-2">
+                                        <div className="text-center sm:text-left">
+                                            <h2 className="text-xl font-semibold flex items-center justify-center sm:justify-start gap-2">
                                                 {profileData?.displayName}
                                                 <div className="relative group">
                                                     {profileData?.verified ? (
                                                         <>
                                                             <Check className="h-5 w-5 text-blue-500" />
                                                             <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-blue-500 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                                                                Verified Account
+                                                                        Verified Account
                                                             </div>
                                                         </>
                                                     ) : (
                                                         <>
                                                             <X className="h-5 w-5 text-red-500" />
                                                             <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-red-500 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                                                                Not Verified
+                                                                        Not Verified
                                                             </div>
                                                         </>
                                                     )}
@@ -164,7 +173,7 @@ export default function ProfilePage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Display Name */}
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium">Display Name</label>
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Display Name</label>
                                         <Dialog>
                                             <DialogTrigger asChild>
                                                 <div className="relative group">
@@ -172,7 +181,7 @@ export default function ProfilePage() {
                                                         type="text"
                                                         readOnly
                                                         value={profileData?.displayName}
-                                                        className="w-full h-10 px-3 rounded-lg bg-muted/50 border border-border/50 cursor-pointer group-hover:border-blue-500/50 transition-colors"
+                                                        className="w-full h-10 px-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 cursor-pointer group-hover:border-blue-500/50 transition-colors"
                                                     />
                                                     <div className="absolute right-3 top-2.5">
                                                         <Pencil className="h-4 w-4 text-muted-foreground/50 group-hover:text-blue-500" />
@@ -194,7 +203,7 @@ export default function ProfilePage() {
 
                                     {/* Username */}
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium">Username</label>
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
                                         <Dialog>
                                             <DialogTrigger asChild>
                                                 <div className="relative group">
@@ -202,7 +211,7 @@ export default function ProfilePage() {
                                                         type="text"
                                                         readOnly
                                                         value={profileData?.username}
-                                                        className="w-full h-10 px-3 rounded-lg bg-muted/50 border border-border/50 cursor-pointer group-hover:border-blue-500/50 transition-colors"
+                                                        className="w-full h-10 px-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 cursor-pointer group-hover:border-blue-500/50 transition-colors"
                                                     />
                                                     <div className="absolute right-3 top-2.5">
                                                         <Pencil className="h-4 w-4 text-muted-foreground/50 group-hover:text-blue-500" />
@@ -224,24 +233,24 @@ export default function ProfilePage() {
 
                                     {/* Account Created */}
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium">Account Created</label>
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Account Created</label>
                                         <input
                                             type="text"
                                             readOnly
                                             value={new Date(profileData?.timeCreated).toLocaleDateString()}
-                                            className="w-full h-10 px-3 rounded-lg bg-muted/50 border border-border/50"
+                                            className="w-full h-10 px-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50"
                                         />
                                     </div>
 
                                     {/* Verification ID */}
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium">Verification ID</label>
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Verification ID</label>
                                         <div className="relative">
                                             <input
                                                 type={showVerificationId ? "text" : "password"}
                                                 readOnly
                                                 value={profileData?.verificationIdNumber}
-                                                className="w-full h-10 px-3 rounded-lg bg-muted/50 border border-border/50"
+                                                className="w-full h-10 px-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50"
                                             />
                                             <div className="absolute right-3 top-2">
                                                 <Button
@@ -268,7 +277,7 @@ export default function ProfilePage() {
                                     className="w-full mt-8 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"
                                 >
                                     <LogOut className="h-4 w-4 mr-2" />
-                                    Sign Out
+                                            Sign Out
                                 </Button>
                             </div>
                         </div>

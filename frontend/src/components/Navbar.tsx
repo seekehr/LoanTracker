@@ -1,8 +1,8 @@
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { Button } from "@/components/ui/button";
 import { LogIn, Menu, User, UserPlus, X } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     e.preventDefault();
@@ -22,20 +22,20 @@ export function Navbar() {
     };
 
     return (
-        <nav className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b">
+        <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60">
             <div className="container px-4 mx-auto">
-                <div className="flex items-center justify-between h-16">
+                <div className="flex h-16 items-center justify-between">
                     <div className="flex items-center">
                         <Link to="/" className="flex-shrink-0">
-                            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                LoanTracker
+                            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#0044FF] to-[#60EFFF] dark:from-[#60EFFF] dark:to-[#0044FF]">
+                                LoanTracker
                             </span>
                         </Link>
                     </div>
 
                     {/* Desktop menu */}
                     <div className="hidden md:flex md:items-center md:justify-between flex-1">
-                        <div className="flex items-center space-x-8 ml-12">
+                        <div className="flex items-center space-x-6 ml-10">
                             <button
                                 onClick={() => handleNavigation("/#features")}
                                 className="text-foreground/80 hover:text-primary transition-colors"

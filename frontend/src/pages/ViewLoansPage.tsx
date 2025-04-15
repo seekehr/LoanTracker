@@ -101,13 +101,13 @@ export default function ViewLoansPage() {
         return (
             <div className="min-h-screen bg-background">
                 <Navbar />
-                <div className="flex">
-                    <div className="hidden lg:block w-56 h-[calc(100vh-4rem)] sticky top-16 border-r border-border/40 bg-background/60 backdrop-blur-sm">
+                <div className="flex relative isolate">
+                    <div className="hidden lg:block flex-none">
                         <SidebarProvider>
                             <AppSidebar />
                         </SidebarProvider>
                     </div>
-                    <main className="flex-1 p-6">
+                    <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:ml-14">
                         <div className="max-w-4xl mx-auto">
                             <h1 className="text-3xl font-bold mb-6">Loading...</h1>
                         </div>
@@ -120,22 +120,36 @@ export default function ViewLoansPage() {
     return (
         <div className="min-h-screen bg-background">
             <Navbar />
-            <div className="flex">
-                <div className="hidden lg:block w-56 h-[calc(100vh-4rem)] sticky top-16 border-r border-border/40 bg-background/60 backdrop-blur-sm">
+            <div className="flex relative isolate">
+                <div className="hidden lg:block flex-none">
                     <SidebarProvider>
                         <AppSidebar />
                     </SidebarProvider>
                 </div>
-                <main className="flex-1 p-6">
+                <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:ml-14">
                     <div className="max-w-4xl mx-auto">
-                        <h1 className="text-3xl font-bold mb-6">Manage Loans</h1>
+                        <div className="flex items-center justify-between mb-8">
+                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#0044FF] to-[#60EFFF] dark:from-[#60EFFF] dark:to-[#0044FF]">
+                                Manage Loans
+                            </h1>
+                        </div>
                         <Tabs defaultValue="loans" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 mb-6">
-                                <TabsTrigger value="loans">Loans</TabsTrigger>
-                                <TabsTrigger value="loaned">Loaned</TabsTrigger>
+                            <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/50 p-1 rounded-xl">
+                                <TabsTrigger 
+                                    value="loans" 
+                                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                >
+                                    Loans
+                                </TabsTrigger>
+                                <TabsTrigger 
+                                    value="loaned"
+                                    className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                >
+                                    Loaned
+                                </TabsTrigger>
                             </TabsList>
                             <TabsContent value="loans">
-                                <div className="grid gap-4 md:grid-cols-2">
+                                <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
                                     {loans.length > 0 ? (
                                         loans.map((loan) => (
                                             <LoanCard
@@ -146,14 +160,16 @@ export default function ViewLoansPage() {
                                             />
                                         ))
                                     ) : (
-                                        <p className="text-muted-foreground col-span-2 text-center py-8">
-                                            No loans found
-                                        </p>
+                                        <div className="col-span-2 bg-muted/40 backdrop-blur-sm rounded-xl p-4 sm:p-6 lg:p-8 text-center border border-border/50">
+                                            <p className="text-muted-foreground">
+                                                No loans found
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             </TabsContent>
                             <TabsContent value="loaned">
-                                <div className="grid gap-4 md:grid-cols-2">
+                                <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
                                     {loaned.length > 0 ? (
                                         loaned.map((loan) => (
                                             <LoanCard
@@ -164,9 +180,11 @@ export default function ViewLoansPage() {
                                             />
                                         ))
                                     ) : (
-                                        <p className="text-muted-foreground col-span-2 text-center py-8">
-                                            No loans found
-                                        </p>
+                                        <div className="col-span-2 bg-muted/40 backdrop-blur-sm rounded-xl p-4 sm:p-6 lg:p-8 text-center border border-border/50">
+                                            <p className="text-muted-foreground">
+                                                No loans found
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             </TabsContent>

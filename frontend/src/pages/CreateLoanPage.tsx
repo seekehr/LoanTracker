@@ -154,150 +154,162 @@ export default function CreateLoanPage() {
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/90 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
             <Navbar />
-            <div className="flex">
-                <div className="hidden lg:block w-56 h-[calc(100vh-4rem)] sticky top-16 border-r border-border/40 bg-background/60 backdrop-blur-sm">
+            <div className="flex relative isolate">
+                <div className="hidden lg:block flex-none">
                     <SidebarProvider>
                         <AppSidebar />
                     </SidebarProvider>
                 </div>
-                <main className="flex-1 p-6">
+                <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:ml-14">
                     <div className="max-w-2xl mx-auto">
-                        <h1 className="text-3xl font-bold mb-6">Create New Loan</h1>
-                        <Form {...form}>
-                            <form
-                                onSubmit={form.handleSubmit(onSubmit)}
-                                className="space-y-6"
-                            >
-                                <FormField
-                                    control={form.control}
-                                    name="loanedId"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Recipient Username</FormLabel>
-                                            <div className="relative">
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder="Enter recipient's username"
-                                                        {...field}
-                                                        onChange={(e) => {
-                                                            field.onChange(e);
-                                                            checkUsername(e.target.value);
-                                                        }}
-                                                    />
-                                                </FormControl>
-                                                {field.value && (
-                                                    <div className="absolute right-3 top-2.5">
-                                                        {usernameValid === true && (
-                                                            <Check className="h-5 w-5 text-green-500" />
-                                                        )}
-                                                        {usernameValid === false && (
-                                                            <X className="h-5 w-5 text-red-500" />
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {usernameValid && displayName && (
-                                                <div className="flex items-center mt-2 text-sm text-muted-foreground">
-                                                    {displayPfp ? (
-                                                        <img
-                                                            src={displayPfp}
-                                                            alt={displayName}
-                                                            className="w-5 h-5 rounded-full mr-2"
+                        <div className="flex items-center justify-between mb-8">
+                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-orange-600 dark:from-orange-500 dark:to-orange-300">
+                                Create New Loan
+                            </h1>
+                        </div>
+                        <div className="bg-white/5 dark:bg-gray-900/20 backdrop-blur-xl rounded-xl border border-white/10 dark:border-white/5 p-4 sm:p-6 lg:p-8 shadow-2xl">
+                            <Form {...form}>
+                                <form
+                                    onSubmit={form.handleSubmit(onSubmit)}
+                                    className="space-y-6"
+                                >
+                                    <FormField
+                                        control={form.control}
+                                        name="loanedId"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-foreground/90 dark:text-white/90">Recipient Username</FormLabel>
+                                                <div className="relative">
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="Enter recipient's username"
+                                                            {...field}
+                                                            onChange={(e) => {
+                                                                field.onChange(e);
+                                                                checkUsername(e.target.value);
+                                                            }}
+                                                            className="bg-white/5 dark:bg-gray-900/50 border-white/10 dark:border-white/10 focus:border-orange-500/50 dark:focus:border-orange-500/50 focus:ring-orange-500/20 dark:focus:ring-orange-500/20 placeholder:text-muted-foreground/50"
                                                         />
-                                                    ) : (
-                                                        <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center mr-2 text-xs">
-                                                            {displayName[0].toUpperCase()}
+                                                    </FormControl>
+                                                    {field.value && (
+                                                        <div className="absolute right-3 top-2.5">
+                                                            {usernameValid === true && (
+                                                                <Check className="h-5 w-5 text-green-500 dark:text-green-400" />
+                                                            )}
+                                                            {usernameValid === false && (
+                                                                <X className="h-5 w-5 text-red-500 dark:text-red-400" />
+                                                            )}
                                                         </div>
                                                     )}
-                                                    <span>{displayName}</span>
                                                 </div>
-                                            )}
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                                {usernameValid && displayName && (
+                                                    <div className="flex items-center mt-2 text-sm text-muted-foreground/70 dark:text-white/70">
+                                                        {displayPfp ? (
+                                                            <img
+                                                                src={displayPfp}
+                                                                alt={displayName}
+                                                                className="w-5 h-5 rounded-full mr-2"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-5 h-5 rounded-full bg-orange-500/10 text-orange-500 dark:bg-orange-500/20 dark:text-orange-400 flex items-center justify-center mr-2 text-xs">
+                                                                {displayName[0].toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                        <span>{displayName}</span>
+                                                    </div>
+                                                )}
+                                                <FormMessage className="text-red-500 dark:text-red-400" />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                                <FormField
-                                    control={form.control}
-                                    name="amount"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Amount</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    step="0.01"
-                                                    placeholder="Enter amount"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="currency"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Currency</FormLabel>
-                                            <Select
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value}
-                                            >
+                                    <FormField
+                                        control={form.control}
+                                        name="amount"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-foreground/90 dark:text-white/90">Amount</FormLabel>
                                                 <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Select currency" />
-                                                    </SelectTrigger>
+                                                    <Input
+                                                        type="number"
+                                                        step="0.01"
+                                                        placeholder="Enter amount"
+                                                        {...field}
+                                                        className="bg-white/5 dark:bg-gray-900/50 border-white/10 dark:border-white/10 focus:border-orange-500/50 dark:focus:border-orange-500/50 focus:ring-orange-500/20 dark:focus:ring-orange-500/20 placeholder:text-muted-foreground/50"
+                                                    />
                                                 </FormControl>
-                                                <SelectContent>
-                                                    {currencies.map((currency) => (
-                                                        <SelectItem
-                                                            key={currency}
-                                                            value={currency}
-                                                        >
-                                                            {currency}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                                <FormMessage className="text-red-500 dark:text-red-400" />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                                <FormField
-                                    control={form.control}
-                                    name="timeExpires"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-col">
-                                            <FormLabel>Expiry Time</FormLabel>
-                                            <FormControl>
-                                                <ReactDatePicker
-                                                    selected={field.value}
-                                                    onChange={(date: Date) => field.onChange(date)}
-                                                    showTimeSelect
-                                                    timeFormat="HH:mm"
-                                                    timeIntervals={15}
-                                                    dateFormat="MMMM d, yyyy h:mm aa"
-                                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                                    placeholderText="Select expiry date and time"
-                                                    minDate={new Date()}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
+                                    <FormField
+                                        control={form.control}
+                                        name="currency"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel className="text-foreground/90 dark:text-white/90">Currency</FormLabel>
+                                                <Select
+                                                    onValueChange={field.onChange}
+                                                    defaultValue={field.value}
+                                                >
+                                                    <FormControl>
+                                                        <SelectTrigger className="bg-white/5 dark:bg-gray-900/50 border-white/10 dark:border-white/10 focus:ring-orange-500/20 dark:focus:ring-orange-500/20">
+                                                            <SelectValue placeholder="Select currency" className="text-muted-foreground/70" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent className="bg-background/95 dark:bg-gray-900/95 border-white/10 dark:border-white/10 backdrop-blur-xl">
+                                                        {currencies.map((currency) => (
+                                                            <SelectItem
+                                                                key={currency}
+                                                                value={currency}
+                                                                className="focus:bg-orange-500/10 dark:focus:bg-orange-500/20"
+                                                            >
+                                                                {currency}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage className="text-red-500 dark:text-red-400" />
+                                            </FormItem>
+                                        )}
+                                    />
 
-                                <Button type="submit" className="w-full">
-                                    Create Loan
-                                </Button>
-                            </form>
-                        </Form>
+                                    <FormField
+                                        control={form.control}
+                                        name="timeExpires"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-col">
+                                                <FormLabel className="text-foreground/90 dark:text-white/90">Expiry Time</FormLabel>
+                                                <FormControl>
+                                                    <ReactDatePicker
+                                                        selected={field.value}
+                                                        onChange={(date: Date) => field.onChange(date)}
+                                                        showTimeSelect
+                                                        timeFormat="HH:mm"
+                                                        timeIntervals={15}
+                                                        dateFormat="MMMM d, yyyy h:mm aa"
+                                                        className="flex h-10 w-full rounded-md border bg-white/5 dark:bg-gray-900/50 border-white/10 dark:border-white/10 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground/50 focus:border-orange-500/50 dark:focus:border-orange-500/50 focus:ring-orange-500/20 dark:focus:ring-orange-500/20 focus:outline-none"
+                                                        placeholderText="Select expiry date and time"
+                                                        minDate={new Date()}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage className="text-red-500 dark:text-red-400" />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <Button 
+                                        type="submit" 
+                                        className="w-full bg-orange-500 hover:bg-orange-600 text-white dark:bg-orange-500/90 dark:hover:bg-orange-600/90 dark:text-white/90 transition-all duration-200"
+                                    >
+                                        Create Loan
+                                    </Button>
+                                </form>
+                            </Form>
+                        </div>
                     </div>
                 </main>
             </div>
