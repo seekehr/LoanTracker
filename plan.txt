@@ -1,0 +1,9 @@
+So, this is basically a khata/loan app. Make logging in as convenient as possible (e.g auto login based on IP?). 
+
+A loan can have: - a price - name - contact info (optional, for auto contacting) - starting data - timer/ending date. A link can be shared by the
+loaner to the loaned guy that publicly displays the status of the loan. An 'APPROVED' loan can be created if the loaned guy is also using the app
+
+So basically, you can use this app to take and give loans.
+
+TODO: Fix profile page. Maybe change it up. Add a bit of life to the landing page.
+Overall, tomorrow work on actually creating loans n stuff and we can add other stuff like auto-contact later.
