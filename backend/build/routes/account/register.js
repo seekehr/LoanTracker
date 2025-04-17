@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
         console.log("New: " + req.cookies["not-new"]);
         // Check for existing accounts with the same IP
         const existingAccountsWithIP = await accDb.getAccountsByIP(ip);
-        if (existingAccountsWithIP.length > 0) {
+        if (existingAccountsWithIP.length > 0 && ip !== "::1") {
             res.status(403).json({
                 error: 'Forbidden',
                 details: 'Multiple accounts from the same IP address are not allowed'

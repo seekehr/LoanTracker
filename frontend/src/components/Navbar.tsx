@@ -1,7 +1,7 @@
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { Button } from "@/components/ui/button";
-import { LogIn, Menu, User, UserPlus, X } from "lucide-react";
-import { useState } from "react";
+import { FilePlus, FileText, LogIn, Menu, Settings, User, UserPlus, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
@@ -14,6 +14,14 @@ const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: stri
 
 export function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isAtHome, setIsAtHome] = useState(false);
+
+    useEffect(() => {
+        if (window.location.pathname === '/') {
+            setIsAtHome(true);
+        }
+    }, [setIsAtHome]);
+
     const hasToken = document.cookie.includes('token');
     const navigate = useNavigate();
 
@@ -27,7 +35,7 @@ export function Navbar() {
                 <div className="flex h-16 items-center justify-between">
                     <div className="flex items-center">
                         <Link to="/" className="flex-shrink-0">
-                            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#0044FF] to-[#60EFFF] dark:from-[#60EFFF] dark:to-[#0044FF]">
+                            <span className="text-2xl font-bold text-white dark:text-white" style={{ fontFamily: 'monospace' }}>
                                 LoanTracker
                             </span>
                         </Link>
@@ -35,26 +43,52 @@ export function Navbar() {
 
                     {/* Desktop menu */}
                     <div className="hidden md:flex md:items-center md:justify-between flex-1">
-                        <div className="flex items-center space-x-6 ml-10">
-                            <button
-                                onClick={() => handleNavigation("/#features")}
-                                className="text-foreground/80 hover:text-primary transition-colors"
-                            >
-                                Features
-                            </button>
-                            <button
-                                onClick={() => handleNavigation("/#testimonials")}
-                                className="text-foreground/80 hover:text-primary transition-colors"
-                            >
-                                Testimonials
-                            </button>
-                            <button
-                                onClick={() => handleNavigation("/#pricing")}
-                                className="text-foreground/80 hover:text-primary transition-colors"
-                            >
-                                Pricing
-                            </button>
-                        </div>
+                        {isAtHome ? (
+                            <div className="flex items-center space-x-6 ml-10">
+                                <button
+                                    onClick={() => handleNavigation("/#features")}
+                                    className="text-foreground/80 hover:text-primary transition-colors"
+                                >
+                                    Features
+                                </button>
+                                <button
+                                    onClick={() => handleNavigation("/#testimonials")}
+                                    className="text-foreground/80 hover:text-primary transition-colors"
+                                >
+                                    Testimonials
+                                </button>
+                                <button
+                                    onClick={() => handleNavigation("/#pricing")}
+                                    className="text-foreground/80 hover:text-primary transition-colors"
+                                >
+                                    Pricing
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center space-x-6 ml-10">
+                                <button
+                                    onClick={() => handleNavigation("/#features")}
+                                    className="text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100 transition-colors flex items-center gap-2"
+                                >
+                                    <Settings className="h-4 w-4" />
+                                    Settings
+                                </button>
+                                <button
+                                    onClick={() => handleNavigation("/#testimonials")}
+                                    className="text-emerald-700 hover:text-emerald-800 dark:text-emerald-500 dark:hover:text-emerald-400 transition-colors flex items-center gap-2"
+                                >
+                                    <FilePlus className="h-4 w-4" />
+                                    Loan
+                                </button>
+                                <button
+                                    onClick={() => handleNavigation("/#pricing")}
+                                    className="text-green-500 hover:text-green-600 dark:text-green-400 dark:hover:text-green-300 transition-colors flex items-center gap-2"
+                                >
+                                    <FileText className="h-4 w-4" />
+                                    Manage
+                                </button>
+                            </div>
+                        )}
                         <div className="flex items-center space-x-3">
                             <ThemeSwitcher />
                             {hasToken ? (

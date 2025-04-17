@@ -4,8 +4,10 @@ import loginRouter from './routes/account/login.js';
 import profileRouter from "./routes/account/profile.js";
 import registerRouter from "./routes/account/register.js";
 import checkUsernameRouter from "./routes/check_username.js";
+import approveLoanRouter from './routes/loan/approve_loan.js';
 import createLoanRouter from './routes/loan/create_loan.js';
 import viewLoansRouter from './routes/loan/view_loans.js';
+import parseTokenRouter from './routes/parse-token.js';
 
 import cookieParser from 'cookie-parser';
 import cors from "cors";
@@ -82,4 +84,8 @@ if (rateLimiter instanceof RateLimiter) {
     app.use('/profile', rateLimiter.getRateLimitMiddleware("/profile" ,10, 5 *1000), auth, profileRouter);
     app.use('/loans', rateLimiter.getRateLimitMiddleware("/loans" ,10, 5 *1000), auth, viewLoansRouter);
     app.use('/create-loan', rateLimiter.getRateLimitMiddleware("/create-loan" ,10, 5 *1000), auth, createLoanRouter);
+
+    // -
+    app.use('/parse-token', rateLimiter.getRateLimitMiddleware("/parse-token" ,10, 5 *1000), auth, parseTokenRouter);
+    app.use('/approve-loan', rateLimiter.getRateLimitMiddleware("/approve-loan" ,10, 5 *1000), auth, approveLoanRouter);
 }

@@ -59,13 +59,4 @@ export default class DatabaseCreator {
             throw new Error("Error caught during initialisation: " + error);
         }
     }
-    async synchronoseDatabases(accDb, loansDb) {
-        const accounts = await accDb.getAllAccounts();
-        for (const account of accounts) {
-            const loans = await loansDb.getLoansByAccountId(account.id);
-            const loaned = await loansDb.getLoansByAccountId(account.id);
-            await accDb.updateAccount(account.id, { loans: JSON.stringify(loans), loaned: JSON.stringify(loaned) });
-        }
-        console.log("Databases synchronised.");
-    }
 }

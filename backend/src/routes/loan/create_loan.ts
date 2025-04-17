@@ -16,9 +16,9 @@ router.post('/', async (req: Request, res: Response) => {
 
     try {
         // Validate required query parameters
-        const { loanedUsername, amount, currency, timeExpires } = req.query;
+        const { loanerUsername, loanedUsername, amount, currency, timeExpires } = req.query;
 
-        if (!loanedUsername || !amount || !currency || !timeExpires) {
+        if (!loanerUsername || !loanedUsername || !amount || !currency || !timeExpires) {
             res.status(400).json({ 
                 error: 'Missing required parameters',
                 required: ['loanerUsername', 'loanedId', 'amount', 'currency', 'timeExpires']
@@ -38,8 +38,22 @@ router.post('/', async (req: Request, res: Response) => {
             return;
         }
 
-        const loanerId = await accDb.getIdFromUsername(String(decoded));
-        const loanedId = await accDb.getIdFromUsername(String(loanedUsername));
+        let isLoaning = false;
+        if (decoded === loanerUsername) {
+            isLoaning = true;
+        } 
+
+        let loanerId;
+        let loanedId;
+
+        if (isLoaning) {
+            loanerId = await accDb.getIdFromUsername(String(decoded));
+            loanedId = await accDb.getIdFromUsername(String(loanedUsername));
+        } else {
+            loanerId = await accDb.getIdFromUsername(String(loanerUsername));
+            loanedId = await accDb.getIdFromUsername(String(decoded));
+        }
+        
 
         if (loanerId === undefined || loanedId === undefined) {
             res.status(400).json({ error: 'Invalid username for loaner or loaned.' });
@@ -54,7 +68,6 @@ router.post('/', async (req: Request, res: Response) => {
             timeExpires: expiryTime
         };
 
-        // Validate numeric values
         if (isNaN(newLoan.loanedId) || isNaN(newLoan.amount)) {
             res.status(400).json({ error: 'Invalid numeric parameters' });
             return;
@@ -67,7 +80,7 @@ router.post('/', async (req: Request, res: Response) => {
 
         const usdAmount = newLoan.currency === "USD" ? newLoan.amount : await translateCurrency(newLoan.amount, newLoan.currency, "USD");
 
-        console.log("Currency: " + newLoan.currency + " to USD: " + usdAmount);
+        //console.log("Currency: " + newLoan.currency + " to USD: " + usdAmount);
 
         if (usdAmount <= 1) {
             res.status(400).json({ error: 'Amount must be over 1 USD.' });
@@ -80,14 +93,12 @@ router.post('/', async (req: Request, res: Response) => {
             return;
         }
 
-        const loanId = await loansDb.createLoan(newLoan);
+        const loanId = await loansDb.createLoan(newLoan, loanerId);
 
         res.status(201).json({
             message: 'Loan created successfully',
             loanId: loanId
         });
-
-        console.log("Loan created successfully: " + loanId);
     } catch (error) {
         console.error('Error creating loan:', error);
         

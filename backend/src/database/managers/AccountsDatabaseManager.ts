@@ -25,6 +25,7 @@ export default class AccountsDatabaseManager implements IDatabaseManager {
             ip VARCHAR(45) NOT NULL,
             loaned JSON NOT NULL,
             loans JSON NOT NULL,
+            toApprove JSON NOT NULL,
             timeCreated BIGINT NOT NULL,
             verified BOOLEAN NOT NULL,
             idVerificationNumber BIGINT NULL
@@ -43,6 +44,7 @@ export default class AccountsDatabaseManager implements IDatabaseManager {
         try {
             const loans = JSON.stringify({loans: []});
             const loaned = JSON.stringify({loaned: []});
+            const toApprove = JSON.stringify({toApprove: []});
             const timeCreated = Date.now();
             const account = {
                 username: newAccount.username,
@@ -51,7 +53,7 @@ export default class AccountsDatabaseManager implements IDatabaseManager {
                 displayName: newAccount.displayName,
                 country: newAccount.country,
                 ip: newAccount.ip,
-                loans, loaned, timeCreated, verified: false, idVerificationNumber: null, pfp: null
+                loans, loaned, timeCreated, verified: false, idVerificationNumber: null, pfp: null, toApprove
             };
 
             const result = await this.db
@@ -111,7 +113,6 @@ export default class AccountsDatabaseManager implements IDatabaseManager {
         return result?.id;
     }
 
-
     async getAccountFromID(id: number): Promise<Account|undefined> {
         return await this.db
             .selectFrom("accounts")
@@ -150,4 +151,20 @@ export default class AccountsDatabaseManager implements IDatabaseManager {
             .selectAll()
             .execute();
     }
+
+    async getLoanedFromAccountId(id: number): Promise<object|undefined> {
+        return await this.db
+            .selectFrom("accounts")
+            .select("loaned")
+            .where("id", '=', id)
+            .executeTakeFirst();
+    }
+
+    async getLoansFromAccountId(id: number): Promise<object|undefined> {
+        return await this.db
+            .selectFrom("accounts")
+            .select("loans")
+            .where("id", '=', id)
+            .executeTakeFirst();
+    }   
 }

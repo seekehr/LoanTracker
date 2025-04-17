@@ -24,6 +24,7 @@ router.get('/', async (req, res) => {
                 res.status(400).json({ error: 'Invalid ID format' });
                 return;
             }
+            console.log("id: " + id);
             const usernameFromId = await accDb.getUsernameFromID(id);
             if (usernameFromId) {
                 username = usernameFromId;

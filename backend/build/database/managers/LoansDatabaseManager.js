@@ -17,7 +17,8 @@ export default class LoansDatabaseManager {
             timeExpires BIGINT NOT NULL,
             timeCreated BIGINT NOT NULL,
             proofs JSON NOT NULL,
-            paid BOOLEAN NOT NULL DEFAULT FALSE
+            paid BOOLEAN NOT NULL DEFAULT FALSE,
+            approved BOOLEAN NOT NULL DEFAULT FALSE
             );
         `;
         try {
@@ -29,7 +30,7 @@ export default class LoansDatabaseManager {
             return false;
         }
     }
-    async createLoan(newLoan) {
+    async createLoan(newLoan, creatorId) {
         try {
             const proofs = JSON.stringify({ proofs: [] });
             const timeCreated = Date.now();
@@ -39,7 +40,7 @@ export default class LoansDatabaseManager {
                 amount: newLoan.amount,
                 currency: newLoan.currency,
                 timeExpires: newLoan.timeExpires,
-                proofs, timeCreated, paid: false
+                proofs, timeCreated, paid: false, approved: false
             };
             const result = await this.db
                 .insertInto("loans")
@@ -48,8 +49,12 @@ export default class LoansDatabaseManager {
             if (typeof (result.insertId) === "undefined" || result.insertId < 0) {
                 throw new Error("Invalid INSERT ID! Account may still be inserted.");
             }
-            await this.synchroniseAccounts(Number(result.insertId), newLoan.loanerId, newLoan.loanedId);
-            return result.insertId;
+            await Promise.all([
+                this.synchroniseAccounts(Number(result.insertId), newLoan.loanerId, newLoan.loanedId),
+                this.addApprove(creatorId, Number(result.insertId))
+            ]);
+            // If Promise.all failed, it would have thrown so it's successful if we got here anyways
+            return result.insertId > 0;
         }
         catch (error) {
             throw error instanceof Error ? error : new Error("\n(Invalid error type, creating error...): \n " + String(error));
@@ -76,43 +81,91 @@ export default class LoansDatabaseManager {
             throw error instanceof Error ? "Could not update loan: " + error : new Error("Could not update loan!?!: " + String(error));
         }
     }
-    async getLoansByAccountId(id) {
-        return await this.db
-            .selectFrom("loans")
-            .selectAll()
-            .where("loanerId", "=", id)
-            .execute();
+    async approveLoan(id, loanerId, loanedId) {
+        const result = await this.db
+            .updateTable("loans")
+            .set({ approved: true })
+            .where("id", '=', id)
+            .executeTakeFirst();
+        if (result.numUpdatedRows > 0) {
+            await this.removeApprove(loanerId, id);
+            await this.removeApprove(loanedId, id);
+        }
     }
     async synchroniseAccounts(id, loanerId, loanedId) {
         const loanedIds = [];
-        const loaneds = await this.getLoansByAccountId(loanerId);
-        for (const loaned of loaneds) {
-            loanedIds.push(loaned.id);
+        const loaneds = await accDb.getLoanedFromAccountId(loanerId);
+        if (typeof (loaneds) === "object" && "loaned" in loaneds) {
+            const loaned = loaneds.loaned;
+            if (typeof (loaned) === "object" && loaned !== null && "loaned" in loaned && Array.isArray(loaned.loaned)) {
+                loanedIds.push(...loaned.loaned);
+            }
         }
-        await accDb.updateAccount(loanerId, { loaned: JSON.stringify(loanedIds) });
+        loanedIds.push(id);
+        accDb.updateAccount(loanerId, { loaned: JSON.stringify({ loaned: loanedIds }) });
         const loanIds = [];
-        const loans = await this.getLoansByAccountId(loanedId);
-        for (const loan of loans) {
-            loanIds.push(loan.id);
+        const loans = await accDb.getLoansFromAccountId(loanedId);
+        if (typeof (loans) === "object" && "loans" in loans) {
+            const loan = loans.loans;
+            if (typeof (loan) === "object" && loan !== null && "loans" in loan && Array.isArray(loan.loans)) {
+                loanIds.push(...loan.loans);
+            }
         }
-        await accDb.updateAccount(loanedId, { loans: JSON.stringify(loanIds) });
+        loanIds.push(id);
+        accDb.updateAccount(loanedId, { loans: JSON.stringify({ loans: loanIds }) });
     }
     async synchroniseAccountsDelete(id, loanerId, loanedId) {
         const loanedIds = [];
-        const loaneds = await this.getLoansByAccountId(loanerId);
-        for (const loaned of loaneds) {
-            if (loaned.id === id)
-                continue;
-            loanedIds.push(loaned.id);
+        const loaneds = await accDb.getLoanedFromAccountId(loanerId);
+        if (typeof (loaneds) === "object" && "loaned" in loaneds) {
+            const loaned = loaneds.loaned;
+            if (typeof (loaned) === "object" && loaned !== null && "loaned" in loaned && Array.isArray(loaned.loaned)) {
+                loanedIds.push(...loaned.loaned);
+            }
         }
-        await accDb.updateAccount(loanerId, { loaned: JSON.stringify(loanedIds) });
+        accDb.updateAccount(loanerId, { loaned: JSON.stringify({ loaned: loanedIds.filter((loanedId) => loanedId !== id) }) });
         const loanIds = [];
-        const loans = await this.getLoansByAccountId(loanedId);
-        for (const loan of loans) {
-            if (loan.id === id)
-                continue;
-            loanIds.push(loan.id);
+        const loans = await accDb.getLoansFromAccountId(loanedId);
+        if (typeof (loans) === "object" && "loans" in loans) {
+            const loan = loans.loans;
+            if (typeof (loan) === "object" && loan !== null && "loans" in loan && Array.isArray(loan.loans)) {
+                loanIds.push(...loan.loans);
+            }
         }
-        await accDb.updateAccount(loanedId, { loans: JSON.stringify(loanIds) });
+        accDb.updateAccount(loanedId, { loans: JSON.stringify({ loans: loanIds.filter((loanId) => loanId !== id) }) });
+    }
+    // ====================
+    //      Approves/Accounts DB
+    // ====================
+    async addApprove(id, loanId) {
+        return await this.db
+            .updateTable("accounts")
+            .set({ toApprove: JSON.stringify({ toApprove: [loanId] }) })
+            .where("id", '=', id)
+            .executeTakeFirst();
+    }
+    async getToApproves(id) {
+        const result = await this.db
+            .selectFrom("accounts")
+            .select("toApprove")
+            .where("id", '=', id)
+            .executeTakeFirst();
+        return result?.toApprove;
+    }
+    async removeApprove(id, loanId) {
+        const currentApproves = await this.getToApproves(id);
+        if (!currentApproves)
+            return false;
+        const approves = JSON.parse(currentApproves);
+        const filteredApproves = approves.toApprove.filter((id) => id !== loanId);
+        const result = await this.db
+            .updateTable("accounts")
+            .set({ toApprove: JSON.stringify({ toApprove: filteredApproves }) })
+            .where("id", '=', id)
+            .executeTakeFirst();
+        if (result.numUpdatedRows > 0) {
+            return true;
+        }
+        return false;
     }
 }

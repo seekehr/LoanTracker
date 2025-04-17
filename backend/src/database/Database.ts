@@ -33,6 +33,7 @@ interface AccountsTable extends BaseAccountInterface {
     pfp: string|null
     loaned: string
     loans: string
+    toApprove: string
     timeCreated: ColumnType<Date, number, never>
     verified: boolean,
     idVerificationNumber: string|null
@@ -63,6 +64,7 @@ interface LoansTable extends BaseLoanInterface {
     proofs: string,
     paid: boolean
     timeCreated: ColumnType<Date, number, never> 
+    approved: boolean
 }
 
 export type Loan = Selectable<LoansTable>

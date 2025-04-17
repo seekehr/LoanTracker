@@ -4,7 +4,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { AppSidebar } from "../components/AppSidebar";
 import { LoanCard } from "../components/LoanCard";
-import { Navbar } from "../components/Navbar";
 
 interface Loan {
     id: number;
@@ -30,6 +29,8 @@ export default function ViewLoansPage() {
     const [loaned, setLoaned] = useState<Loan[]>([]);
     const [profiles, setProfiles] = useState<Map<number, Profile>>(new Map());
     const [isLoading, setIsLoading] = useState(true);
+    const [couldNotLoadCount, setCouldNotLoadCount] = useState(0);
+    const [noLoansFound, setNoLoansFound] = useState(false);
     const { toast } = useToast();
 
     const fetchProfile = async (id: number) => {
@@ -51,8 +52,16 @@ export default function ViewLoansPage() {
                 const response = await fetch("http://localhost:3000/loans", {
                     credentials: "include",
                 });
+
+                if (response.status === 404) {
+                    setNoLoansFound(true);
+                    setIsLoading(false);
+                    return;
+                }
+
                 const data = await response.json();
                 if (!response.ok) {
+                    
                     if (data.error) {
                         throw new Error("Error: " + data.error);
                     } else {
@@ -62,22 +71,13 @@ export default function ViewLoansPage() {
                 
                 const loansArray = typeof data.loans === 'string' ? JSON.parse(data.loans) : (data.loans || []);
                 const loanedArray = typeof data.loaned === 'string' ? JSON.parse(data.loaned) : (data.loaned || []);
+                const couldNotLoadArray = Array.isArray(data.couldNotLoad) ? data.couldNotLoad : [];
                 
                 setLoans(Array.isArray(loansArray) ? loansArray : []);
                 setLoaned(Array.isArray(loanedArray) ? loanedArray : []);
+                setCouldNotLoadCount(couldNotLoadArray.length);
 
-                const uniqueIds = new Set<number>();
-                const allLoans = [
-                    ...(Array.isArray(loansArray) ? loansArray : []),
-                    ...(Array.isArray(loanedArray) ? loanedArray : [])
-                ];
-                
-                allLoans.forEach((loan: Loan) => {
-                    uniqueIds.add(loan.loanerId);
-                    uniqueIds.add(loan.loanedId);
-                });
-
-                await Promise.all([...uniqueIds].map(fetchProfile));
+                await Promise.all([...loansArray.map((loan: Loan) => fetchProfile(loan.loanerId)), ...loanedArray.map((loan: Loan) => fetchProfile(loan.loanedId))]);
             } catch (error) {
                 if (error instanceof Error) {
                     console.error("Error fetching loans:", error.message);
@@ -97,18 +97,15 @@ export default function ViewLoansPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900">
-                <Navbar />
-                <div className="flex relative isolate">
-                    <div className="hidden lg:block flex-none">
-                        <SidebarProvider>
-                            <AppSidebar />
-                        </SidebarProvider>
-                    </div>
-                    <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:ml-14">
-                        <div className="max-w-4xl mx-auto text-center">
-                            <h1 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">Loading Loans...</h1>
-                        </div>
+            <div className="min-h-screen flex bg-sky-50 dark:bg-gray-900">
+                <div className="hidden lg:block flex-none">
+                    <SidebarProvider>
+                        <AppSidebar />
+                    </SidebarProvider>
+                </div>
+                <div className="flex-1 flex justify-center py-6 lg:py-10 px-4 sm:px-6 lg:px-8">
+                    <main className="w-full max-w-4xl text-center">
+                        <h1 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">Loading Loans...</h1>
                     </main>
                 </div>
             </div>
@@ -116,21 +113,36 @@ export default function ViewLoansPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
-            <Navbar />
-            <div className="flex relative isolate">
-                <div className="hidden lg:block flex-none">
-                    <SidebarProvider>
-                        <AppSidebar />
-                    </SidebarProvider>
-                </div>
-                <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 lg:ml-14">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="flex items-center justify-between mb-8">
-                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#0044FF] to-[#60EFFF] dark:from-[#60EFFF] dark:to-[#0044FF]">
+        <div className="min-h-screen flex bg-sky-50 dark:bg-gray-900">
+            <div className="hidden lg:block flex-none">
+                <SidebarProvider>
+                    <AppSidebar />
+                </SidebarProvider>
+            </div>
+            <div className="flex-1 flex justify-center py-6 lg:py-10 px-4 sm:px-6 lg:px-8">
+                <main className="w-full max-w-4xl">
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center space-x-2">
+                            <h1 className={`text-4xl font-bold text-blue-600 dark:text-cyan-400`} style={{ fontFamily: 'monospace' }}>
                                 Manage Loans
                             </h1>
+                            {/* Render red boxes for items that could not be loaded */}
+                            {Array.from({ length: couldNotLoadCount }).map((_, index) => (
+                                <div
+                                    key={index}
+                                    className="w-3 h-3 bg-red-500 bg-opacity-50 border border-red-700 rounded-sm"
+                                    title={`Could not load item ${index + 1}`}
+                                ></div>
+                            ))}
                         </div>
+                    </div>
+                    {noLoansFound ? (
+                        <div className="flex justify-center items-center h-64">
+                            <p className="text-xl text-gray-500 dark:text-gray-400">
+                                No loans found! Try creating one first.
+                            </p>
+                        </div>
+                    ) : (
                         <Tabs defaultValue="loans" className="w-full">
                             <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                                 <TabsTrigger 
@@ -187,7 +199,7 @@ export default function ViewLoansPage() {
                                 </div>
                             </TabsContent>
                         </Tabs>
-                    </div>
+                    )}
                 </main>
             </div>
         </div>

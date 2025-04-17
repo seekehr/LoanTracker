@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import { Loan } from 'src/database/Database.js';
 import { accDb, jwtSecret, loansDb } from '../../app.js';
 
 const router = express.Router();
@@ -37,34 +38,97 @@ router.get('/', async (req: Request, res: Response) => {
             return;
         }
 
-        const account = await accDb.getAccountFromID(id);
+        const loanedIds: number[] = [];
+        const loanIds: number[] = [];
 
-        if (!account) {
-            res.status(404).json({ error: 'Account not found' });
+        async function loadLoaned() {
+            const loaneds = await accDb.getLoanedFromAccountId(id);
+            if (typeof(loaneds) === "object" && "loaned" in loaneds) {
+                const loaned = loaneds.loaned;
+                if (typeof(loaned) === "object" && loaned !== null && "loaned" in loaned && Array.isArray(loaned.loaned)) {
+                    loanedIds.push(...loaned.loaned);
+                }
+            } 
+
+            if (loanedIds.length < 1) {
+                return false;
+            } 
+
+            return true;
+        }
+
+        async function loadLoans() {
+            const loans = await accDb.getLoansFromAccountId(id);
+            if (typeof(loans) === "object" && "loans" in loans) {
+                const loan = loans.loans;
+                if (typeof(loan) === "object" && loan !== null && "loans" in loan && Array.isArray(loan.loans)) {
+                    loanIds.push(...loan.loans);
+                }
+            }
+
+            if (loanIds.length < 1) {
+                return false;
+            }
+
+            return true;
+        }
+
+        const successful = await Promise.all([loadLoaned(), loadLoans()]);
+        if (!successful[0] || !successful[1]) {
+            res.status(404).json({ error: 'Loans not found' });
             return;
         }
 
-        const loans = [];
-        const loaned = [];
+        const promises = [];
+        const loanedLoans: Loan[] = [];
+        const loanLoans: Loan[] = [];
+        const couldNotLoad: null[] = [];
 
-        for (const loanId of account.loans) {
-            if (typeof(loanId) !== 'number') continue;
-            const loan = await loansDb.getLoanFromId(loanId);
-            if (loan) {
-                loans.push(loan);
+        if (loanedIds.length > 0) {
+            for (const loanedId of loanedIds) {
+                promises.push(loansDb.getLoanFromId(loanedId).then(
+                    (loan) => {
+                        if (loan instanceof Error) {
+                            return null;
+                        }
+
+                        return {loaned: loan};
+                    }
+                ));
             }
         }
 
-        for (const loanId of account.loaned) {
-            if (typeof(loanId) !== 'number') continue;
-            const loan = await loansDb.getLoanFromId(loanId);
-            if (loan) {
-                loaned.push(loan);
+        if (loanIds.length > 0) {
+            for (const loanId of loanIds) {
+                promises.push(loansDb.getLoanFromId(loanId).then(
+                    (loan) => {
+                        if (loan instanceof Error) {
+                            return null;
+                        }
+
+                        return {loan: loan};
+                    }
+                ));
             }
         }
 
+        const info = await Promise.all(promises);
+        for (const loan of info) {
+            if (loan !== null) {
+                if ("loaned" in loan) {
+                    loanedLoans.push(loan.loaned);
+                } else if ("loan" in loan) {
+                    loanLoans.push(loan.loan);
+                }
+            } else {
+                couldNotLoad.push(null);
+            }
+        }
+        
         res.status(200).json({
-            loans, loaned
+            loaned: loanedLoans,
+            loans: loanLoans,
+            couldNotLoad: couldNotLoad
         });
 
     } catch (error) {
