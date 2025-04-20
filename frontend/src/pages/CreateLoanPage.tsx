@@ -261,50 +261,91 @@ export default function CreateLoanPage() {
 
             // ---- Start Notification Logic ----
             try {
-                const loanId = data.loanId; // Assuming the response includes the loan ID
-                if (!loanId) {
-                    console.warn("Loan ID not found in response, skipping notification.");
-                } else if (currentUserUsername) {
-                    let recipientUsername: string | null = null;
-                    let actionText: string = '';
+                 const loanId = data.loanId;
+                 if (!loanId) {
+                     console.warn("Loan ID not found in response, skipping notifications.");
+                 } else if (currentUserUsername) {
+                     let recipientUsername: string | null = null;
+                     let actionText: string = '';
+                     let otherPartyUsername: string | null = null; // Added for second notification
+                     let directionText: string = ''; // Added for second notification
 
-                    if (values.loanerId === currentUserUsername) {
-                        // Current user is the loaner, notify the loaned
-                        recipientUsername = values.loanedId;
-                        actionText = 'borrow'; // The recipient needs to borrow
-                    } else if (values.loanedId === currentUserUsername) {
-                        // Current user is the loaned, notify the loaner
-                        recipientUsername = values.loanerId;
-                        actionText = 'loan'; // The recipient needs to loan (approve the loan)
-                    }
+                     if (values.loanerId === currentUserUsername) {
+                         // Current user is the loaner, notify the loaned
+                         recipientUsername = values.loanedId;
+                         actionText = 'borrow';
+                         otherPartyUsername = values.loanedId; // Other party is the recipient
+                         directionText = 'to';
+                     } else if (values.loanedId === currentUserUsername) {
+                         // Current user is the loaned, notify the loaner
+                         recipientUsername = values.loanerId;
+                         actionText = 'loan';
+                         otherPartyUsername = values.loanerId; // Other party is the loaner
+                         directionText = 'from';
+                     }
 
-                    if (recipientUsername) {
-                        const notificationMessage = `New loan request from ${currentUserUsername} for you to ${actionText}. LoanID:${loanId} [Approve] [Decline] [Details]`;
+                     // --- First Notification (to other user) ---
+                     if (recipientUsername) {
+                         const notificationMessage = `New loan request from ${currentUserUsername} for you to ${actionText}. LoanID:${loanId} [Approve] [Decline] [Details]`;
+                         const notificationParams = new URLSearchParams({
+                             username: recipientUsername,
+                             type: 'approval',
+                             message: notificationMessage,
+                         });
 
-                        const notificationParams = new URLSearchParams({
-                            username: recipientUsername,
-                            type: 'approval', // Use 'approval' type for loan requests
-                            message: notificationMessage,
+                         try {
+                             const notifResponse = await fetch(`http://localhost:3000/send-notification?${notificationParams.toString()}`, {
+                                 method: 'POST',
+                                 credentials: 'include',
+                             });
+                             if (!notifResponse.ok) {
+                                 const notifError = await notifResponse.json();
+                                 console.error(`Failed to send notification to ${recipientUsername}:`, notifError.error);
+                                 toast({ title: "Warning", description: `Loan created, but failed to send notification to ${recipientUsername}.`, variant: "destructive" });
+                             } else {
+                                 console.log(`Notification sent to ${recipientUsername}`);
+                             }
+                         } catch(firstNotifError) {
+                              console.error(`Error sending notification to ${recipientUsername}:`, firstNotifError);
+                              toast({ title: "Warning", description: `Loan created, but failed to send notification to ${recipientUsername}.`, variant: "destructive" });
+                         }
+                     } else {
+                         console.error("Could not determine recipient username for the primary notification.");
+                     }
+
+                    // --- Second Notification (to current user) ---
+                    if (otherPartyUsername) {
+                        const selfNotificationMessage = `Your loan request ${directionText} ${otherPartyUsername} for ${values.amount} ${values.currency} has been initiated. LoanID:${loanId}`;
+                        const selfNotificationParams = new URLSearchParams({
+                            username: currentUserUsername, // Target the current user
+                            type: 'message', // Or 'system'
+                            message: selfNotificationMessage,
                         });
 
-                        const notifResponse = await fetch(`http://localhost:3000/send-notification?${notificationParams.toString()}`, {
-                            method: 'POST',
-                            credentials: 'include',
-                        });
+                         try {
+                             const selfNotifResponse = await fetch(`http://localhost:3000/send-notification?${selfNotificationParams.toString()}`, {
+                                 method: 'POST',
+                                 credentials: 'include',
+                             });
 
-                        if (!notifResponse.ok) {
-                            const notifError = await notifResponse.json();
-                            console.error("Failed to send notification:", notifError.error);
-                            toast({ title: "Warning", description: "Loan created, but failed to send notification.", variant: "destructive" });
-                        } else {
-                             console.log(`Notification sent to ${recipientUsername}`);
-                        }
+                             if (!selfNotifResponse.ok) {
+                                 const selfNotifError = await selfNotifResponse.json();
+                                 // Don't necessarily show a toast for this, maybe just log it
+                                 console.error(`Failed to send confirmation notification to self (${currentUserUsername}):`, selfNotifError.error);
+                             } else {
+                                 console.log(`Confirmation notification sent to self (${currentUserUsername})`);
+                             }
+                         } catch (selfNotifError) {
+                              console.error(`Error sending confirmation notification to self (${currentUserUsername}):`, selfNotifError);
+                         }
                     } else {
-                         console.error("Could not determine recipient username for notification.");
+                         console.error("Could not determine the other party username for the confirmation notification.");
                     }
-                }
-            } catch (notifError) {
-                 console.error("Error sending notification:", notifError);
+
+                 }
+            } catch (error) { // Catch errors from the main loan creation fetch
+                 console.error("Error during loan creation process:", error);
+                 // The main toast for loan creation failure is handled in the outer catch block
             }
             // ---- End Notification Logic ----
 
