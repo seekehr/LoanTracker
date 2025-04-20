@@ -2,6 +2,8 @@
 
 A website built to track loans, inspired by the 'khata' system often used in South-Asian shop owners, built using React/Tailwind and Express/MySQL/Redis.
 
+**Preview:** https://youtu.be/LUcKv93m5lY
+**Lines of code:** Nearly 5700 
 **Use of AI:** AI has mostly **only** been used in generating the JSX/helping with the styling of the page, or for generating boiler plate code.
 
 **WIP:**
