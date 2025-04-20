@@ -188,9 +188,88 @@ export default function CreateLoanPage() {
         [checkUsernameRaw]
     );
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        await form.trigger();
+    // Helper function to handle sending notifications after loan creation
+    const handleNotifications = async (loanId: number, values: z.infer<typeof formSchema>, currentUserUsername: string) => {
+        let recipientUsername: string | null = null;
+        let actionText: string = '';
+        let otherPartyUsername: string | null = null;
+        let directionText: string = '';
 
+        if (values.loanerId === currentUserUsername) {
+            recipientUsername = values.loanedId;
+            actionText = 'borrow';
+            otherPartyUsername = values.loanedId;
+            directionText = 'to';
+        } else if (values.loanedId === currentUserUsername) {
+            recipientUsername = values.loanerId;
+            actionText = 'loan';
+            otherPartyUsername = values.loanerId;
+            directionText = 'from';
+        }
+
+        // --- Send notification to the other party ---
+        if (recipientUsername) {
+            const notificationMessage = `New loan request from ${currentUserUsername} for you to ${actionText}. LoanID:${loanId} [Approve] [Decline] [Details]`;
+            const notificationParams = new URLSearchParams({
+                username: recipientUsername,
+                type: 'approval',
+                message: notificationMessage,
+            });
+
+            try {
+                const notifResponse = await fetch(`http://localhost:3000/send-notification?${notificationParams.toString()}`, {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+                if (!notifResponse.ok) {
+                    const notifError = await notifResponse.json();
+                    console.error(`Failed to send notification to ${recipientUsername}:`, notifError.error);
+                    // Use toast from the main component scope
+                    toast({ title: "Warning", description: `Loan created, but failed to send notification to ${recipientUsername}.`, variant: "destructive" });
+                } else {
+                    console.log(`Notification sent to ${recipientUsername}`);
+                }
+            } catch(error) {
+                console.error(`Error sending notification to ${recipientUsername}:`, error);
+                toast({ title: "Warning", description: `Loan created, but failed to send notification to ${recipientUsername}.`, variant: "destructive" });
+            }
+        } else {
+            console.error("Could not determine recipient username for the primary notification.");
+        }
+
+        // --- Send confirmation notification to the current user ---
+        if (otherPartyUsername) {
+            const selfNotificationMessage = `Your loan request ${directionText} ${otherPartyUsername} for ${values.amount} ${values.currency} has been initiated. LoanID:${loanId}`;
+            const selfNotificationParams = new URLSearchParams({
+                username: currentUserUsername,
+                type: 'system',
+                message: selfNotificationMessage,
+            });
+
+            try {
+                const selfNotifResponse = await fetch(`http://localhost:3000/send-notification?${selfNotificationParams.toString()}`, {
+                    method: 'POST',
+                    credentials: 'include',
+                });
+                if (!selfNotifResponse.ok) {
+                    const selfNotifError = await selfNotifResponse.json();
+                    console.error(`Failed to send confirmation notification to self (${currentUserUsername}):`, selfNotifError.error);
+                    // Optional: Maybe add a less intrusive warning here if needed
+                } else {
+                    console.log(`Confirmation notification sent to self (${currentUserUsername})`);
+                }
+            } catch (error) {
+                console.error(`Error sending confirmation notification to self (${currentUserUsername}):`, error);
+            }
+        } else {
+            console.error("Could not determine the other party username for the confirmation notification.");
+        }
+    };
+
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+        await form.trigger(); // Trigger validation
+
+        // --- Initial Validations ---
         if (!form.formState.isValid) {
             toast({ title: "Error", description: "Please fill all required fields correctly.", variant: "destructive" });
             return;
@@ -203,31 +282,23 @@ export default function CreateLoanPage() {
             let errorDesc = "Please ensure both usernames are valid.";
             if (!isLoanerStillValid) errorDesc = "Please enter a valid username for the loaner.";
             else if (!isLoanedStillValid) errorDesc = "Please enter a valid username for the loan recipient.";
-
-            toast({
-                title: "Error",
-                description: errorDesc,
-                variant: "destructive",
-            });
+            toast({ title: "Error", description: errorDesc, variant: "destructive" });
             return;
         }
-
 
         if (values.loanerId === values.loanedId) {
-            toast({
-                title: "Error",
-                description: "Loaner and recipient cannot be the same.",
-                variant: "destructive",
-            });
+            toast({ title: "Error", description: "Loaner and recipient cannot be the same.", variant: "destructive" });
             return;
         }
 
-        
-        try {
-            if (!currentUserUsername) {
-                throw new Error("User session expired or invalid. Please log in again.");
-            }
+        if (!currentUserUsername) {
+             toast({ title: "Error", description: "User session expired or invalid. Please log in again.", variant: "destructive" });
+             // Optionally navigate to login
+             return;
+        }
 
+        // --- API Call to Create Loan ---
+        try {
             const queryParams = new URLSearchParams({
                 loanerUsername: values.loanerId,
                 loanedUsername: values.loanedId,
@@ -240,115 +311,31 @@ export default function CreateLoanPage() {
                 `http://localhost:3000/create-loan?${queryParams}`,
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     credentials: "include",
                 }
             );
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || "Failed to create loan");
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to create loan");
             }
 
             const data = await response.json();
             toast({
                 title: "Success",
                 description: "Loan created successfully",
-                variant: "default",
+                variant: "default", // Use default variant for success
             });
 
-            // ---- Start Notification Logic ----
-            try {
-                 const loanId = data.loanId;
-                 if (!loanId) {
-                     console.warn("Loan ID not found in response, skipping notifications.");
-                 } else if (currentUserUsername) {
-                     let recipientUsername: string | null = null;
-                     let actionText: string = '';
-                     let otherPartyUsername: string | null = null; // Added for second notification
-                     let directionText: string = ''; // Added for second notification
-
-                     if (values.loanerId === currentUserUsername) {
-                         // Current user is the loaner, notify the loaned
-                         recipientUsername = values.loanedId;
-                         actionText = 'borrow';
-                         otherPartyUsername = values.loanedId; // Other party is the recipient
-                         directionText = 'to';
-                     } else if (values.loanedId === currentUserUsername) {
-                         // Current user is the loaned, notify the loaner
-                         recipientUsername = values.loanerId;
-                         actionText = 'loan';
-                         otherPartyUsername = values.loanerId; // Other party is the loaner
-                         directionText = 'from';
-                     }
-
-                     // --- First Notification (to other user) ---
-                     if (recipientUsername) {
-                         const notificationMessage = `New loan request from ${currentUserUsername} for you to ${actionText}. LoanID:${loanId} [Approve] [Decline] [Details]`;
-                         const notificationParams = new URLSearchParams({
-                             username: recipientUsername,
-                             type: 'approval',
-                             message: notificationMessage,
-                         });
-
-                         try {
-                             const notifResponse = await fetch(`http://localhost:3000/send-notification?${notificationParams.toString()}`, {
-                                 method: 'POST',
-                                 credentials: 'include',
-                             });
-                             if (!notifResponse.ok) {
-                                 const notifError = await notifResponse.json();
-                                 console.error(`Failed to send notification to ${recipientUsername}:`, notifError.error);
-                                 toast({ title: "Warning", description: `Loan created, but failed to send notification to ${recipientUsername}.`, variant: "destructive" });
-                             } else {
-                                 console.log(`Notification sent to ${recipientUsername}`);
-                             }
-                         } catch(firstNotifError) {
-                              console.error(`Error sending notification to ${recipientUsername}:`, firstNotifError);
-                              toast({ title: "Warning", description: `Loan created, but failed to send notification to ${recipientUsername}.`, variant: "destructive" });
-                         }
-                     } else {
-                         console.error("Could not determine recipient username for the primary notification.");
-                     }
-
-                    // --- Second Notification (to current user) ---
-                    if (otherPartyUsername) {
-                        const selfNotificationMessage = `Your loan request ${directionText} ${otherPartyUsername} for ${values.amount} ${values.currency} has been initiated. LoanID:${loanId}`;
-                        const selfNotificationParams = new URLSearchParams({
-                            username: currentUserUsername, // Target the current user
-                            type: 'message', // Or 'system'
-                            message: selfNotificationMessage,
-                        });
-
-                         try {
-                             const selfNotifResponse = await fetch(`http://localhost:3000/send-notification?${selfNotificationParams.toString()}`, {
-                                 method: 'POST',
-                                 credentials: 'include',
-                             });
-
-                             if (!selfNotifResponse.ok) {
-                                 const selfNotifError = await selfNotifResponse.json();
-                                 // Don't necessarily show a toast for this, maybe just log it
-                                 console.error(`Failed to send confirmation notification to self (${currentUserUsername}):`, selfNotifError.error);
-                             } else {
-                                 console.log(`Confirmation notification sent to self (${currentUserUsername})`);
-                             }
-                         } catch (selfNotifError) {
-                              console.error(`Error sending confirmation notification to self (${currentUserUsername}):`, selfNotifError);
-                         }
-                    } else {
-                         console.error("Could not determine the other party username for the confirmation notification.");
-                    }
-
-                 }
-            } catch (error) { // Catch errors from the main loan creation fetch
-                 console.error("Error during loan creation process:", error);
-                 // The main toast for loan creation failure is handled in the outer catch block
+            // --- Handle Notifications ---
+            if (data.loanId) {
+                 await handleNotifications(data.loanId, values, currentUserUsername);
+            } else {
+                 console.warn("Loan ID not found in response, skipping notification sending.");
             }
-            // ---- End Notification Logic ----
 
+            // --- Reset Form State ---
             form.reset();
             setLoanerUsernameValid(null);
             setLoanerDisplayName(null);
@@ -357,7 +344,10 @@ export default function CreateLoanPage() {
             setLoanedDisplayName(null);
             setLoanedDisplayPfp(null);
             setTypeUser(null);
+
         } catch (error) {
+            // --- Handle Loan Creation Error ---
+            console.error("Error creating loan:", error);
             toast({
                 title: "Error",
                 description: error instanceof Error ? error.message : "Failed to create loan",
@@ -503,43 +493,34 @@ export default function CreateLoanPage() {
                                 {/* Combined Amount and Currency Field */}
                                 <FormItem>
                                     <FormLabel className="text-gray-700 dark:text-gray-300">Amount & Currency</FormLabel>
-                                    <div className="flex items-end"> {/* Use items-end to align baseline if needed */} 
+                                    <div className="flex items-end">
+                                        {/* Amount Input Field */}
                                         <FormField
                                             control={form.control}
                                             name="amount"
                                             render={({ field }) => (
-                                                // Removed FormItem wrapper, added flex-grow
                                                 <div className="flex-grow">
-                                                    {/* Removed FormLabel */}
                                                     <FormControl>
                                                         <Input
                                                             type="number"
                                                             step="0.01"
                                                             placeholder="Enter amount"
                                                             {...field}
-                                                            // Added rounded-r-none
-                                                            className="bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 rounded-r-none focus:z-10 relative"
+                                                            className="rounded-r-none focus:z-10 relative bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500"
                                                         />
                                                     </FormControl>
-                                                    {/* FormMessage moved outside the flex container */} 
                                                 </div>
                                             )}
                                         />
-
+                                        {/* Currency Select Field */}
                                         <FormField
                                             control={form.control}
                                             name="currency"
                                             render={({ field }) => (
-                                                // Removed FormItem wrapper
-                                                <div> 
-                                                    {/* Removed FormLabel */}
-                                                    <Select
-                                                        onValueChange={field.onChange}
-                                                        value={field.value}
-                                                    >
+                                                <div>
+                                                    <Select onValueChange={field.onChange} value={field.value}>
                                                         <FormControl>
-                                                            {/* Added rounded-l-none, border-l-0, removed margin-top */}
-                                                            <SelectTrigger className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500 rounded-l-none border-l-0 w-auto focus:z-10 relative">
+                                                            <SelectTrigger className="rounded-l-none border-l-0 w-auto focus:z-10 relative bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-blue-500 focus:border-blue-500">
                                                                 <SelectValue placeholder="Select currency" className="text-gray-500 dark:text-gray-400" />
                                                             </SelectTrigger>
                                                         </FormControl>
@@ -555,12 +536,11 @@ export default function CreateLoanPage() {
                                                             ))}
                                                         </SelectContent>
                                                     </Select>
-                                                    {/* FormMessage moved outside the flex container */} 
                                                 </div>
                                             )}
                                         />
                                     </div>
-                                    {/* Display error messages below the combined field */}
+                                    {/* Combined Error Message */}
                                     <FormMessage className="text-red-600 dark:text-red-500">
                                         {form.formState.errors.amount?.message || form.formState.errors.currency?.message}
                                     </FormMessage>

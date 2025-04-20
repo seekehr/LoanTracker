@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useNotifications } from "@/hooks/use-notifications";
 import { useToast } from "@/hooks/use-toast";
-import { BellRing, CheckCircle, Info, Loader2, XCircle } from "lucide-react";
+import { BellRing, CheckCircle, Info, Loader2, MailCheck, XCircle } from "lucide-react";
 
 // Helper to parse the notification message for actions
 const parseNotificationMessage = (message: string) => {
@@ -65,6 +65,14 @@ export default function NotificationsPage() {
         // TODO: Implement navigation or modal for loan details
     };
 
+    // Handler for the Mark as Read button
+    const handleMarkAsRead = (notificationId: number, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent event bubbling if the card is clickable
+        console.log(`Marking notification ${notificationId} as read (WIP)`);
+        alert('Mark as read - WIP');
+        // TODO: Implement API call to mark as read & refetch or update state
+    };
+
     return (
         <div className="min-h-screen flex bg-sky-50 dark:bg-gray-900">
             <div className="hidden lg:block flex-none">
@@ -109,15 +117,15 @@ export default function NotificationsPage() {
                                              BellRing; // Default or system icon
 
                                 return (
-                                    <div key={notif.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm rounded-lg p-4 flex items-start space-x-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <div key={notif.id} className="relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm rounded-lg p-4 flex items-start space-x-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
                                          <div className={`p-2 rounded-full ${
                                             notif.type === 'approval' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
                                             'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                                          }`}>
                                             <Icon className="h-5 w-5" />
                                          </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm text-gray-800 dark:text-gray-200">{parsed.text}</p>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm text-gray-800 dark:text-gray-200 pr-10">{parsed.text}</p>
                                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                                 {formatRelativeTime(notif.createdAt)}
                                             </p>
@@ -150,9 +158,20 @@ export default function NotificationsPage() {
                                                 </div>
                                             )}
                                         </div>
-                                         {!notif.read && ( // Simple indicator for unread status (backend doesn't support this yet)
-                                            <div className="h-2.5 w-2.5 rounded-full bg-blue-500 flex-shrink-0 mt-1" title="Unread"></div>
-                                        )}
+
+                                        <div className="absolute top-3 right-3 flex items-center space-x-2">
+                                            <button
+                                                onClick={(e) => handleMarkAsRead(notif.id, e)}
+                                                className="p-1 rounded-full text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
+                                                title="Mark as read"
+                                            >
+                                                <MailCheck className="h-4 w-4" />
+                                            </button>
+
+                                            {!notif.read && (
+                                                <div className="h-2.5 w-2.5 rounded-full bg-blue-500 flex-shrink-0" title="Unread"></div>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             })}
