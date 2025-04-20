@@ -1,10 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Calendar, CheckCircle, Clipboard, Clock, CreditCard, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, CheckCircle, Clipboard, Clock, CreditCard, Loader2, Plus, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AppSidebar } from "../components/AppSidebar";
@@ -38,6 +41,8 @@ export default function SingleLoanPage() {
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [canMarkAsPaid, setCanMarkAsPaid] = useState(false);
     const [canAddProofs, setCanAddProofs] = useState(false);
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+    const [proofLinks, setProofLinks] = useState<string[]>(['']);
     const { toast } = useToast();
     const location = useLocation();
     const navigate = useNavigate();
@@ -188,6 +193,50 @@ export default function SingleLoanPage() {
             return typeof proofs === 'string' ? JSON.parse(proofs) : proofs;
         } catch {
             return { proofs: [] };
+        }
+    };
+
+    const handleAddProofLink = () => {
+        if (proofLinks.length < 4) {
+            setProofLinks([...proofLinks, '']);
+        }
+    };
+
+    const handleRemoveProofLink = (index: number) => {
+        const newLinks = [...proofLinks];
+        newLinks.splice(index, 1);
+        setProofLinks(newLinks);
+    };
+
+    const handleProofLinkChange = (value: string, index: number) => {
+        const newLinks = [...proofLinks];
+        newLinks[index] = value;
+        setProofLinks(newLinks);
+    };
+
+    const handleMarkAsPaid = () => {
+        setProofLinks(['']);
+        setConfirmDialogOpen(true);
+    };
+
+    const handleSubmitPaid = () => {
+        // Filter out empty proof links
+        const filteredProofs = proofLinks.filter(link => link.trim() !== '');
+        
+        // Here you would make the API call to mark the loan as paid
+        // and include the proof links
+
+        toast({
+            title: "Success",
+            description: "Loan has been marked as paid.",
+            variant: "default",
+        });
+
+        setConfirmDialogOpen(false);
+        
+        // For demo purposes, let's refresh the page to show the updated state
+        if (loanId) {
+            window.location.reload();
         }
     };
 
@@ -508,14 +557,7 @@ export default function SingleLoanPage() {
                                                 ? "bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800" 
                                                 : "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"} text-white dark:text-gray-100`}
                                             disabled={!canMarkAsPaid}
-                                            onClick={() => {
-                                                // Mark as paid logic would go here
-                                                toast({
-                                                    title: "Success",
-                                                    description: "Loan has been marked as paid.",
-                                                    variant: "default",
-                                                });
-                                            }}
+                                            onClick={handleMarkAsPaid}
                                         >
                                             {canMarkAsPaid 
                                                 ? "Mark as Paid" 
@@ -530,6 +572,67 @@ export default function SingleLoanPage() {
                     )}
                 </main>
             </div>
+            
+            {/* Confirmation Dialog */}
+            <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Confirm Payment</DialogTitle>
+                        <DialogDescription>
+                            Are you sure that you want to mark this as paid?
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="proof-links">Proof Links (Optional)</Label>
+                            
+                            {proofLinks.map((link, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                    <Input
+                                        id={`proof-link-${index}`}
+                                        placeholder="https://example.com/receipt"
+                                        value={link}
+                                        onChange={(e) => handleProofLinkChange(e.target.value, index)}
+                                        className="flex-1"
+                                    />
+                                    {index > 0 && (
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={() => handleRemoveProofLink(index)}
+                                            className="px-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                        >
+                                            <Trash className="h-4 w-4" />
+                                        </Button>
+                                    )}
+                                </div>
+                            ))}
+                            
+                            {proofLinks.length < 4 && (
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={handleAddProofLink}
+                                    className="mt-2 w-full"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Another Proof Link
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSubmitPaid}>
+                            Confirm
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
