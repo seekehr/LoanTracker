@@ -1,5 +1,6 @@
 import { format } from "date-fns";
-import { Clock, CreditCard, FileText } from "lucide-react";
+import { Check, Clock, CreditCard, FileText, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Loan {
     id: number;
@@ -11,6 +12,7 @@ interface Loan {
     timeCreated: number | string;
     proofs: string;
     paid: boolean;
+    approved: boolean;
 }
 
 interface Profile {
@@ -27,6 +29,8 @@ interface LoanCardProps {
 }
 
 export function LoanCard({ loan, type, profile }: LoanCardProps) {
+    const navigate = useNavigate();
+    
     // Safely parse dates with validation
     const parseDate = (dateValue: number | string | undefined) => {
         if (!dateValue) return new Date();
@@ -53,8 +57,30 @@ export function LoanCard({ loan, type, profile }: LoanCardProps) {
         maximumFractionDigits: 2
     }).format(loan.amount);
 
+    const handleCardClick = () => {
+        navigate(`/loan?id=${loan.id}`);
+    };
+
     return (
-        <div className="rounded-lg border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-md p-6 relative overflow-hidden">
+        <div 
+            className="rounded-lg border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-md p-6 relative overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800"
+            onClick={handleCardClick}
+        >
+            {/* Approval indicator in top-right corner */}
+            <div className="absolute top-2 right-2 flex items-center">
+                {loan.approved ? (
+                    <div className="flex items-center bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 text-xs rounded-full px-2 py-0.5">
+                        <Check className="w-3 h-3 mr-1" />
+                        <span>Approved</span>
+                    </div>
+                ) : (
+                    <div className="flex items-center bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 text-xs rounded-full px-2 py-0.5">
+                        <X className="w-3 h-3 mr-1" />
+                        <span>Not Approved</span>
+                    </div>
+                )}
+            </div>
+
             <div className="relative flex items-start space-x-4">
                 {profile ? (
                     profile.pfp ? (

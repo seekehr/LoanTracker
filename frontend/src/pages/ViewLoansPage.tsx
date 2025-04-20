@@ -16,6 +16,7 @@ interface Loan {
     timeCreated: number | string;
     proofs: string;
     paid: boolean;
+    approved: boolean;
 }
 
 interface Profile {
@@ -130,15 +131,18 @@ export default function ViewLoansPage() {
                         Manage Loans
                     </h1>
 
-                    <div className="flex items-center mb-8">
-                        <div className="flex items-center space-x-2">
-                             {Array.from({ length: couldNotLoadCount }).map((_, index) => (
+                    <div className="flex flex-wrap items-center gap-y-2 mb-8">
+                        <div className="flex items-center space-x-2 mr-6">
+                            {Array.from({ length: couldNotLoadCount }).map((_, index) => (
                                 <div
                                     key={index}
                                     className="w-3 h-3 bg-red-500 bg-opacity-50 border border-red-700 rounded-sm"
                                     title={`Could not load item ${index + 1}`}
                                 ></div>
                             ))}
+                            {couldNotLoadCount > 0 && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">Could not load</span>
+                            )}
                         </div>
                     </div>
 

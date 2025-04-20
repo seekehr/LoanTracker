@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFoundPage.js";
 import NotificationsPage from "./pages/NotificationsPage.js";
 import ProfilePage from "./pages/ProfilePage.js";
 import RegisterPage from "./pages/RegisterPage.js";
+import SingleLoanPage from "./pages/SingleLoanPage.js";
 import ViewLoansPage from "./pages/ViewLoansPage.js";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/create-loan" element={<CreateLoanPage />} />
                         <Route path="/manage-loans" element={<ViewLoansPage />} />
+                        <Route path="/loan" element={<SingleLoanPage />} />
                         <Route path="/notifications" element={<NotificationsPage />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
