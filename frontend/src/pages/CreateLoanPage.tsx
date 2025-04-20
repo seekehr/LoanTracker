@@ -280,7 +280,7 @@ export default function CreateLoanPage() {
             <div className="flex-1 flex justify-center py-6 lg:py-10 px-4 sm:px-6 lg:px-8">
                 <main className="w-full max-w-2xl">
                     <div className="flex items-center justify-between mb-4">
-                        <h1 className={`text-4xl font-bold text-blue-600 dark:text-cyan-400`} style={{ fontFamily: 'monospace' }}>
+                        <h1 className={`text-4xl font-bold text-blue-600  0`} style={{ fontFamily: 'monospace' }}>
                             Create New Loan
                         </h1>
                     </div>

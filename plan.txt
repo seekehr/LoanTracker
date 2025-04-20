@@ -5,7 +5,7 @@ loaner to the loaned guy that publicly displays the status of the loan. An 'APPR
 
 So basically, you can use this app to take and give loans.
 
-TODO: Maybe improve UI? Otherwise create FAQ page. 
+TODO: Maybe improve UI? (Done) Otherwise create FAQ page. 
 Also make it maybe so Navbar is diff on profile/loans' pages.
 Also create a new browser window with a VPN to open a new account and test with it instead.
 Add 'approval' feature for the loan and loan proof (in createloan).

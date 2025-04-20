@@ -30,13 +30,13 @@ export function AppSidebar() {
             }}
             className={`flex items-center gap-3 ${isCollapsed && hideText ? 'justify-center px-0' : 'px-3'} py-2 rounded-lg text-sm font-medium transition-all duration-200 group relative ${ 
                 currentPath === item.path 
-                    ? "bg-sky-100 text-blue-600 dark:bg-blue-900/30 dark:text-cyan-400"
+                    ? "bg-sky-100 text-blue-600 dark:bg-blue-900/30  0"
                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/50"
             }`}
         >
             <item.icon className={`h-5 w-5 flex-shrink-0 transition-colors duration-200 ${ 
                 currentPath === item.path
-                    ? "text-blue-500 dark:text-cyan-400"
+                    ? "text-blue-500  0"
                     : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
             }`} />
             {!hideText && (
@@ -45,9 +45,6 @@ export function AppSidebar() {
                 }`}>
                     {item.title}
                 </span>
-            )}
-            {currentPath === item.path && !isCollapsed && (
-                <div className={`absolute right-0 top-1/2 -translate-y-1/2 h-4 w-[3px] rounded-full bg-blue-600 dark:bg-cyan-500`} />
             )}
         </a>
     );
@@ -61,7 +58,7 @@ export function AppSidebar() {
                 
                 <div className={`relative h-full w-full z-10 flex flex-col`}>
                     <div className="px-3 py-4 flex-shrink-0">
-                        <div className={`pl-3 text-xl font-bold text-blue-600 dark:text-cyan-400`} style={{ fontFamily: 'monospace' }}>
+                        <div className={`pl-3 text-xl font-bold text-blue-600`} style={{ fontFamily: 'monospace' }}>
                             LoanTracker
                         </div>
                     </div>
@@ -74,13 +71,28 @@ export function AppSidebar() {
                         <div className="mb-8">
                             <NavItem item={settingsItem} isCollapsed={false} currentPath={currentPath} />
                         </div>
-                        <div className={`flex items-center justify-between`}>
-                            <NavItem 
-                                item={homeItem} 
-                                isCollapsed={false} 
-                                currentPath={currentPath} 
-                                hideText={true} 
-                            />
+                        <hr className="my-2 border-t border-gray-200 dark:border-gray-700" />
+                        <div className={`flex items-center justify-between mt-4`}>
+                            <a
+                                href={homeItem.path}
+                                title={homeItem.title}
+                                onClick={(e) => { 
+                                    e.preventDefault(); 
+                                    navigate(homeItem.path);
+                                    if (isMobile) setIsCollapsed(true);
+                                }}
+                                className={`flex items-center justify-center p-1.5 rounded-full border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors duration-200 ${ 
+                                    currentPath === homeItem.path 
+                                        ? "bg-sky-100 text-blue-600 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700" 
+                                        : ""
+                                }`}
+                            >
+                                <Home className={`h-4 w-4 flex-shrink-0 ${ 
+                                    currentPath === homeItem.path
+                                        ? "text-blue-500" 
+                                        : "text-gray-500 dark:text-gray-300 group-hover:text-gray-700 dark:group-hover:text-gray-100"
+                                }`} />
+                            </a>
                             <ThemeSwitcher />
                         </div>
                     </div>

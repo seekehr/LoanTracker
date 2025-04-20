@@ -119,11 +119,12 @@ export default function ViewLoansPage() {
                     <AppSidebar />
                 </SidebarProvider>
             </div>
-            <div className="flex-1 flex justify-center py-6 lg:py-10 px-4 sm:px-6 lg:px-8">
+            <div className="flex-1 flex justify-center py-6 lg:py-10 pl-8 pr-8 sm:pl-10 sm:pr-10 lg:pl-20 lg:pr-16">
+
                 <main className="w-full max-w-4xl">
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center space-x-2">
-                            <h1 className={`text-4xl font-bold text-blue-600 dark:text-cyan-400`} style={{ fontFamily: 'monospace' }}>
+                            <h1 className={`text-4xl font-bold text-blue-600`} style={{ fontFamily: 'monospace' }}>
                                 Manage Loans
                             </h1>
                             {/* Render red boxes for items that could not be loaded */}
@@ -147,13 +148,13 @@ export default function ViewLoansPage() {
                             <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
                                 <TabsTrigger 
                                     value="loans" 
-                                    className="rounded-md py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
+                                    className="rounded-md py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm dark:data-[state=active]:shadow-gray-800"
                                 >
                                     Loans
                                 </TabsTrigger>
                                 <TabsTrigger 
                                     value="loaned"
-                                    className="rounded-md py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm"
+                                    className="rounded-md py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm dark:data-[state=active]:shadow-gray-800"
                                 >
                                     Loaned
                                 </TabsTrigger>
