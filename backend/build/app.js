@@ -6,7 +6,7 @@ import checkUsernameRouter from "./routes/check_username.js";
 import approveLoanRouter from './routes/loan/approve_loan.js';
 import createLoanRouter from './routes/loan/create_loan.js';
 import viewLoansRouter from './routes/loan/view_loans.js';
-import parseTokenRouter from './routes/parse-token.js';
+import parseTokenRouter from './routes/parse_token.js';
 import cookieParser from 'cookie-parser';
 import cors from "cors";
 import "dotenv/config";

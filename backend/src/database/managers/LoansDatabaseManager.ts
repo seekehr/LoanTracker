@@ -128,6 +128,10 @@ export default class LoansDatabaseManager implements IDatabaseManager {
         accDb.updateAccount(loanedId, { loans: JSON.stringify({ loans: loanIds }) });
     }
 
+    // ====================
+    //   Accounts DB; Funcs which basically modify the accounts table
+    // ====================
+
     private async synchroniseAccountsDelete(id: number, loanerId: number, loanedId: number) {
         const loanedIds = [];
         const loaneds = await accDb.getLoanedFromAccountId(loanerId);
@@ -152,10 +156,6 @@ export default class LoansDatabaseManager implements IDatabaseManager {
         accDb.updateAccount(loanedId, { loans: JSON.stringify({ loans: loanIds.filter((loanId: number) => loanId !== id) }) });
     }
 
-    // ====================
-    //      Approves/Accounts DB
-    // ====================
-
     private async addApprove(id: number, loanId: number) {
         return await this.db
             .updateTable("accounts")
@@ -164,21 +164,21 @@ export default class LoansDatabaseManager implements IDatabaseManager {
             .executeTakeFirst();
     }
 
-    private async getToApproves(id: number): Promise<string|undefined> {
+    private async getToApproves(id: number): Promise<object|undefined> {
         const result = await this.db
             .selectFrom("accounts")
             .select("toApprove")
             .where("id", '=', id)
             .executeTakeFirst();
-        return result?.toApprove;
+        return result;
     }
 
     private async removeApprove(id: number, loanId: number): Promise<boolean> {
         const currentApproves = await this.getToApproves(id);
-        if (!currentApproves) return false;
+        if (!currentApproves || typeof(currentApproves) !== "object" || !("toApprove" in currentApproves) || typeof(currentApproves.toApprove) !== "object") return false;
 
-        const approves = JSON.parse(currentApproves);
-        const filteredApproves = approves.toApprove.filter((id: number) => id !== loanId);
+        const approves = currentApproves.toApprove as object;
+        const filteredApproves = Array.isArray(approves) ? approves.filter((id: number) => id !== loanId) : [];
 
         const result = await this.db
             .updateTable("accounts")
