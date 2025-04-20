@@ -91,10 +91,10 @@ export default class LoansDatabaseManager implements IDatabaseManager {
         }
     }
 
-    async approveLoan(id: number, loanerId: number, loanedId: number): Promise<void> {
+    async updateLoan(id: number, loanerId: number, loanedId: number, update: object): Promise<void> {
         const result = await this.db
             .updateTable("loans")
-            .set({ approved: true })
+            .set(update)
             .where("id", '=', id)
             .executeTakeFirst();
         if (result.numUpdatedRows > 0) {

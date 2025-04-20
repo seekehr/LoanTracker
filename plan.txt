@@ -3,16 +3,8 @@ So, this is basically a khata/loan app. Make logging in as convenient as possibl
 A loan can have: - a price - name - contact info (optional, for auto contacting) - starting data - timer/ending date. A link can be shared by the
 loaner to the loaned guy that publicly displays the status of the loan. An 'APPROVED' loan can be created if the loaned guy is also using the app
 
-So basically, you can use this app to take and give loans.
-
-TODO: Maybe improve UI? (Done) [ ] Otherwise create FAQ page. 
-Add 'approval' feature for the loan and loan proof (in createloan). (NOw WIP)
-
-[X] Finish notifications / 'delete notif'/'mark notif as read'
-[X] Introduce 'link' in notifications DB so notifs can have links. Then in the
-frontend parse the link in a button
-[ ] Finish 'Mark as Paid'/adding proof to the loan in SingleLoanPage and CreateLoanPage
-[ ] Finish approval notification
+WIP:
+[ ] Finish approval system
 [ ] Some UI touches
-[ ] 30m FAQ page
+[ ] FAQ page
 [ ] Landing page edits

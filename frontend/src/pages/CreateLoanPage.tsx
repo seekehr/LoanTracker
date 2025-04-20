@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
     Form,
     FormControl,
@@ -19,7 +20,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import debounce from 'lodash-es/debounce';
-import { Check, X } from "lucide-react";
+import { Check, Images, Plus, Trash, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -60,7 +61,10 @@ export default function CreateLoanPage() {
     const [loanedDisplayName, setLoanedDisplayName] = useState<string | null>(null);
     const [loanedDisplayPfp, setLoanedDisplayPfp] = useState<string | null>(null);
     const [typeUser, setTypeUser] = useState<'loaner' | 'loaned' |null>(null);
-
+    const [proofsDialogOpen, setProofsDialogOpen] = useState(false);
+    const [proofLinks, setProofLinks] = useState<string[]>(['']);
+    const [proofLinkError, setProofLinkError] = useState<string | null>(null);
+    
     const { toast } = useToast();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -267,6 +271,81 @@ export default function CreateLoanPage() {
         }
     };
 
+    // Function to check if a URL is a valid Imgur link
+    const isValidImgurLink = (url: string) => {
+        return url.trim() === '' || /^https?:\/\/(i\.)?imgur\.com\/\w+(\.\w+)?$/.test(url);
+    };
+
+    const handleAddProofLink = () => {
+        if (proofLinks.length < 4) {
+            setProofLinks([...proofLinks, '']);
+        }
+    };
+
+    const handleRemoveProofLink = (index: number) => {
+        const newLinks = [...proofLinks];
+        newLinks.splice(index, 1);
+        setProofLinks(newLinks);
+    };
+
+    const handleProofLinkChange = (value: string, index: number) => {
+        const newLinks = [...proofLinks];
+        newLinks[index] = value;
+        setProofLinks(newLinks);
+        
+        // Validate Imgur URL format
+        if (value && !isValidImgurLink(value)) {
+            setProofLinkError("Only Imgur links are allowed (e.g., https://imgur.com/image or https://i.imgur.com/image.jpg)");
+        } else {
+            setProofLinkError(null);
+        }
+    };
+
+    const handleOpenProofsDialog = () => {
+        setProofLinks(['']);
+        setProofLinkError(null);
+        setProofsDialogOpen(true);
+    };
+
+    const handleSubmitProofs = () => {
+        // Filter out empty links and validate all links
+        const filteredLinks = proofLinks.filter(link => link.trim() !== '');
+        
+        // Check if all links are valid Imgur links
+        const allValid = filteredLinks.every(link => isValidImgurLink(link));
+        
+        if (!allValid) {
+            setProofLinkError("All links must be valid Imgur links");
+            return;
+        }
+        
+        // Store the proof links in form data or local state for submission
+        toast({
+            title: "Success",
+            description: `Added ${filteredLinks.length} proof links`,
+            variant: "default",
+        });
+        
+        setProofsDialogOpen(false);
+    };
+
+    // Create image URL for preview
+    const getImageUrl = (imgurUrl: string) => {
+        if (!imgurUrl || !isValidImgurLink(imgurUrl)) return null;
+        
+        // Convert standard imgur URL to direct image URL if needed
+        if (imgurUrl.includes('i.imgur.com')) {
+            return imgurUrl; // Already a direct image URL
+        } else {
+            // Extract the ID and construct a direct thumbnail URL
+            const match = imgurUrl.match(/imgur\.com\/(\w+)/);
+            if (match && match[1]) {
+                return `https://i.imgur.com/${match[1]}s.jpg`; // 's' suffix for small thumbnail
+            }
+            return null;
+        }
+    };
+
     async function onSubmit(values: z.infer<typeof formSchema>) {
         await form.trigger(); // Trigger validation
 
@@ -298,6 +377,13 @@ export default function CreateLoanPage() {
              return;
         }
 
+        let key = "loaner";
+        if (values.loanedId === currentUserUsername) {
+            key = "loaned";
+        }
+        const filteredProofs = { proofs: { [key]: proofLinks.filter(link => link.trim() !== '') } };
+        console.log(filteredProofs);
+        
         // --- API Call to Create Loan ---
         try {
             const queryParams = new URLSearchParams({
@@ -306,6 +392,7 @@ export default function CreateLoanPage() {
                 amount: values.amount,
                 currency: values.currency,
                 timeExpires: values.timeExpires.getTime().toString(),
+                proofs: JSON.stringify(filteredProofs),
             });
 
             const response = await fetch(
@@ -345,6 +432,7 @@ export default function CreateLoanPage() {
             setLoanedDisplayName(null);
             setLoanedDisplayPfp(null);
             setTypeUser(null);
+            setProofLinks(['']);
 
         } catch (error) {
             // --- Handle Loan Creation Error ---
@@ -574,6 +662,83 @@ export default function CreateLoanPage() {
                                     )}
                                 />
 
+                                {/* Add a button for proofs before the submit button */}
+                                <div className="flex flex-col space-y-4">
+                                    <div className="flex items-center space-x-2">
+                                        <Button 
+                                            type="button" 
+                                            variant="outline"
+                                            onClick={handleOpenProofsDialog}
+                                            className="flex items-center space-x-2 border-dashed"
+                                        >
+                                            <Images className="h-5 w-5" />
+                                            <span>Add Proof Links</span>
+                                        </Button>
+                                        
+                                        {proofLinks.some(link => link.trim() !== '') && (
+                                            <span className="text-sm text-green-600 dark:text-green-400">
+                                                {proofLinks.filter(link => link.trim() !== '').length} proof(s) added
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    {/* Display thumbnails of proof links in the main form */}
+                                    {proofLinks.some(link => link.trim() !== '') && (
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {proofLinks
+                                                .filter(link => link.trim() !== '')
+                                                .map((link, index) => (
+                                                    <div key={index} className="relative group">
+                                                        {getImageUrl(link) ? (
+                                                            <div className="w-16 h-16 rounded-md overflow-hidden border border-gray-200 dark:border-gray-700 relative group">
+                                                                <img 
+                                                                    src={getImageUrl(link)} 
+                                                                    alt={`Proof ${index + 1}`}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        e.currentTarget.style.display = 'none';
+                                                                    }}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newLinks = [...proofLinks];
+                                                                        newLinks.splice(proofLinks.findIndex(l => l === link), 1);
+                                                                        if (newLinks.length === 0) newLinks.push('');
+                                                                        setProofLinks(newLinks);
+                                                                    }}
+                                                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-bl-md opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
+                                                                    aria-label="Remove proof"
+                                                                >
+                                                                    <Trash className="h-3 w-3" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-16 h-16 rounded-md flex items-center justify-center bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 overflow-hidden relative group">
+                                                                <span className="px-1 text-center overflow-hidden text-ellipsis">
+                                                                    {link.length > 15 ? link.substring(0, 15) + '...' : link}
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newLinks = [...proofLinks];
+                                                                        newLinks.splice(proofLinks.findIndex(l => l === link), 1);
+                                                                        if (newLinks.length === 0) newLinks.push('');
+                                                                        setProofLinks(newLinks);
+                                                                    }}
+                                                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-bl-md opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
+                                                                    aria-label="Remove proof"
+                                                                >
+                                                                    <Trash className="h-3 w-3" />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    )}
+                                </div>
+
                                 <Button 
                                     type="submit" 
                                     className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white transition-all duration-200"
@@ -583,6 +748,86 @@ export default function CreateLoanPage() {
                             </form>
                         </Form>
                     </div>
+                    
+                    {/* Proofs Dialog */}
+                    <Dialog open={proofsDialogOpen} onOpenChange={setProofsDialogOpen}>
+                        <DialogContent className="sm:max-w-[550px]">
+                            <DialogHeader>
+                                <DialogTitle>Add Proof Links</DialogTitle>
+                                <DialogDescription>
+                                    Add up to 4 Imgur links as proof for this loan.
+                                </DialogDescription>
+                            </DialogHeader>
+                            
+                            <div className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                    {proofLinks.map((link, index) => (
+                                        <div key={index} className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    id={`proof-link-${index}`}
+                                                    placeholder="https://imgur.com/abcd123"
+                                                    value={link}
+                                                    onChange={(e) => handleProofLinkChange(e.target.value, index)}
+                                                    className={`flex-1 ${!isValidImgurLink(link) && link.trim() !== '' ? 'border-red-500 dark:border-red-400' : ''}`}
+                                                />
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    onClick={() => handleRemoveProofLink(index)}
+                                                    className="px-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                                >
+                                                    <Trash className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                            
+                                            {/* Image preview */}
+                                            {link.trim() !== '' && isValidImgurLink(link) && getImageUrl(link) && (
+                                                <div className="mt-1 rounded-md overflow-hidden w-20 h-20 relative">
+                                                    <img 
+                                                        src={getImageUrl(link)} 
+                                                        alt="Preview" 
+                                                        className="object-cover w-full h-full"
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = 'none';
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    
+                                    {proofLinkError && (
+                                        <p className="text-red-500 dark:text-red-400 text-sm">{proofLinkError}</p>
+                                    )}
+                                    
+                                    {proofLinks.length < 4 && (
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            onClick={handleAddProofLink}
+                                            className="mt-2"
+                                        >
+                                            <Plus className="h-4 w-4 mr-2" />
+                                            Add Another Link
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setProofsDialogOpen(false)}>
+                                    Cancel
+                                </Button>
+                                <Button 
+                                    onClick={handleSubmitProofs}
+                                    disabled={!!proofLinkError || !proofLinks.some(link => link.trim() !== '' && isValidImgurLink(link))}
+                                >
+                                    Confirm
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </main>
             </div>
         </div>

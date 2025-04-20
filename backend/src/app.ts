@@ -16,9 +16,9 @@ import loginRouter from './routes/account/login.js';
 import profileRouter from "./routes/account/profile.js";
 import registerRouter from "./routes/account/register.js";
 import checkUsernameRouter from "./routes/check_username.js";
-import approveLoanRouter from './routes/loan/approve_loan.js';
 import createLoanRouter from './routes/loan/create_loan.js';
 import loanRouter from './routes/loan/loan.js';
+import updateLoanRouter from './routes/loan/update_loan.js';
 import viewLoansRouter from './routes/loan/view_loans.js';
 import { add_ip } from './routes/middleware/add_ip.js';
 import auth from './routes/middleware/auth.js';
@@ -101,10 +101,10 @@ if (rateLimiter instanceof RateLimiter) {
     app.use('/loans', rateLimiter.getRateLimitMiddleware("/loans" ,10, 5 *1000), auth, viewLoansRouter);
     app.use('/create-loan', rateLimiter.getRateLimitMiddleware("/create-loan" ,10, 5 *1000), auth, createLoanRouter);
     app.use('/loan', rateLimiter.getRateLimitMiddleware("/loan" ,10, 5 *1000), auth, loanRouter);
-
+    app.use('/update-loan', rateLimiter.getRateLimitMiddleware("/update-loan" ,10, 5 *1000), auth, updateLoanRouter);
+    
     // -
     app.use('/parse-token', rateLimiter.getRateLimitMiddleware("/parse-token" ,10, 5 *1000), auth, parseTokenRouter);
-    app.use('/approve-loan', rateLimiter.getRateLimitMiddleware("/approve-loan" ,10, 5 *1000), auth, approveLoanRouter);
 
     // -
     app.use('/send-notification', rateLimiter.getRateLimitMiddleware("/send-notification" ,10, 5 *1000), auth, sendNotificationRouter);

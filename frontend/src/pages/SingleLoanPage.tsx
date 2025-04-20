@@ -42,7 +42,9 @@ export default function SingleLoanPage() {
     const [canMarkAsPaid, setCanMarkAsPaid] = useState(false);
     const [canAddProofs, setCanAddProofs] = useState(false);
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+    const [proofsDialogOpen, setProofsDialogOpen] = useState(false);
     const [proofLinks, setProofLinks] = useState<string[]>(['']);
+    const [proofLinkError, setProofLinkError] = useState<string | null>(null);
     const { toast } = useToast();
     const location = useLocation();
     const navigate = useNavigate();
@@ -155,6 +157,29 @@ export default function SingleLoanPage() {
         fetchLoan();
     }, [loanId, toast]);
 
+    // Add function to parse proof links from loan data
+    useEffect(() => {
+        if (loan?.proofs) {
+            try {
+                // Try to parse proofs from JSON string
+                const proofsData = typeof loan.proofs === 'string' 
+                    ? JSON.parse(loan.proofs) 
+                    : loan.proofs;
+                
+                // If proofs exists and is an array, use it
+                if (proofsData.proofs && Array.isArray(proofsData.proofs)) {
+                    const existingLinks = proofsData.proofs;
+                    // If there are existing links, use them; otherwise keep the default empty array
+                    if (existingLinks.length > 0) {
+                        setProofLinks(existingLinks);
+                    }
+                }
+            } catch (error) {
+                console.error("Error parsing proof links:", error);
+            }
+        }
+    }, [loan]);
+
     const formatDate = (timestamp: number | string) => {
         const date = typeof timestamp === 'number' 
             ? new Date(timestamp) 
@@ -196,6 +221,18 @@ export default function SingleLoanPage() {
         }
     };
 
+    const handleProofLinkChange = (value: string, index: number) => {
+        const newProofLinks = [...proofLinks];
+        newProofLinks[index] = value;
+        setProofLinks(newProofLinks);
+        
+        if (value.trim() !== '' && !isValidImgurLink(value)) {
+            setProofLinkError('Please enter valid Imgur links.');
+        } else {
+            setProofLinkError(null);
+        }
+    };
+
     const handleAddProofLink = () => {
         if (proofLinks.length < 4) {
             setProofLinks([...proofLinks, '']);
@@ -203,19 +240,116 @@ export default function SingleLoanPage() {
     };
 
     const handleRemoveProofLink = (index: number) => {
-        const newLinks = [...proofLinks];
-        newLinks.splice(index, 1);
-        setProofLinks(newLinks);
+        const newProofLinks = [...proofLinks];
+        newProofLinks.splice(index, 1);
+        
+        if (newProofLinks.length === 0) {
+            setProofLinks(['']);
+        } else {
+            setProofLinks(newProofLinks);
+        }
+        
+        // Re-check errors
+        const hasError = newProofLinks.some(link => link.trim() !== '' && !isValidImgurLink(link));
+        if (!hasError) {
+            setProofLinkError(null);
+        }
     };
 
-    const handleProofLinkChange = (value: string, index: number) => {
-        const newLinks = [...proofLinks];
-        newLinks[index] = value;
-        setProofLinks(newLinks);
+    const isValidImgurLink = (link: string) => {
+        return /^https?:\/\/(?:i\.)?imgur\.com\/[a-zA-Z0-9]{5,}(?:\.[a-zA-Z]{3,4})?$/.test(link);
+    };
+
+    const getImageUrl = (imgurUrl: string) => {
+        try {
+            const url = new URL(imgurUrl);
+            const pathSegments = url.pathname.split('/');
+            const imgId = pathSegments[pathSegments.length - 1];
+            
+            if (!imgId) return null;
+            
+            // Remove file extension if present
+            const cleanedImgId = imgId.split('.')[0];
+            
+            return `https://i.imgur.com/${cleanedImgId}.jpg`;
+        } catch (error) {
+            return null;
+        }
+    };
+
+    const handleOpenProofsDialog = () => {
+        if (loan && loan.proofs && loan.proofs.length > 0) {
+            setProofLinks([...loan.proofs]);
+        } else {
+            setProofLinks(['']);
+        }
+        setProofLinkError(null);
+        setProofsDialogOpen(true);
+    };
+
+    const handleSubmitProofs = async () => {
+        // Validate all links
+        const hasError = proofLinks.some(link => link.trim() !== '' && !isValidImgurLink(link));
+        if (hasError) {
+            setProofLinkError('Please enter valid Imgur links.');
+            return;
+        }
+        
+        let key = "loaner";
+        if (loan?.loanedId === currentUserId) {
+            key = "loaned";
+        }
+
+        //loanId, loanerId, loanedId, paid, approved, proofs
+        const filteredProofs = { proofs: { [key]: proofLinks.filter(link => link.trim() !== '') } };
+        console.log(filteredProofs);
+
+        try {
+            setIsLoading(true);
+            
+            const response = await fetch(`http://localhost:3000/update-loan?loanId=${loan?.id}&loanerId=${loan?.loanerId}&loanedId=${loan?.loanedId}&paid=${loan?.paid}&approved=${loan?.approved}&proofs=${encodeURIComponent(JSON.stringify(filteredProofs))}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update proof links');
+            }
+            
+            // Update local state
+            if (loan) {
+                setLoan({
+                    ...loan,
+                    proofs: JSON.stringify(filteredProofs),
+                });
+            }
+            
+            toast({
+                title: "Success",
+                description: "Proof links updated successfully.",
+                variant: "success",
+            });
+            
+            setProofsDialogOpen(false);
+        } catch (error) {
+            console.error('Error updating proof links:', error);
+            toast({
+                title: "Error",
+                description: "Failed to update proof links. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleMarkAsPaid = () => {
+        // Reset proof links
         setProofLinks(['']);
+        setProofLinkError(null);
         setConfirmDialogOpen(true);
     };
 
@@ -382,20 +516,55 @@ export default function SingleLoanPage() {
                                             </div>
 
                                             {loan.proofs && (
-                                                <div className="flex items-start">
-                                                    <Clipboard className="h-5 w-5 text-blue-500 mt-0.5 mr-3" />
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Proofs</p>
-                                                        <p className="text-base text-gray-900 dark:text-gray-100">
-                                                            {(() => {
-                                                                const proofData = getProofData(loan.proofs);
-                                                                if (proofData.proofs && proofData.proofs.length > 0) {
-                                                                    return `${proofData.proofs.length} document${proofData.proofs.length !== 1 ? 's' : ''} attached`;
-                                                                }
-                                                                return "No documents attached";
-                                                            })()}
-                                                        </p>
+                                                <div className="flex items-start flex-col">
+                                                    <div className="flex items-start">
+                                                        <Clipboard className="h-5 w-5 text-blue-500 mt-0.5 mr-3" />
+                                                        <div>
+                                                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Proofs</p>
+                                                            <p className="text-base text-gray-900 dark:text-gray-100">
+                                                                {(() => {
+                                                                    const proofData = getProofData(loan.proofs);
+                                                                    if (proofData.proofs && proofData.proofs.length > 0) {
+                                                                        return `${proofData.proofs.length} document${proofData.proofs.length !== 1 ? 's' : ''} attached`;
+                                                                    }
+                                                                    return "No documents attached";
+                                                                })()}
+                                                            </p>
+                                                        </div>
                                                     </div>
+                                                    
+                                                    {/* Display proof images */}
+                                                    {(() => {
+                                                        const proofData = getProofData(loan.proofs);
+                                                        if (proofData.proofs && proofData.proofs.length > 0) {
+                                                            return (
+                                                                <div className="mt-3 ml-8 grid grid-cols-2 gap-2">
+                                                                    {proofData.proofs.map((link: string, index: number) => (
+                                                                        link && isValidImgurLink(link) && getImageUrl(link) && (
+                                                                            <div key={index} className="rounded-md overflow-hidden border border-gray-200 dark:border-gray-700">
+                                                                                <a 
+                                                                                    href={link} 
+                                                                                    target="_blank" 
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="block hover:opacity-90 transition-opacity"
+                                                                                >
+                                                                                    <img 
+                                                                                        src={getImageUrl(link)} 
+                                                                                        alt={`Proof ${index + 1}`} 
+                                                                                        className="object-cover w-full h-32"
+                                                                                        onError={(e) => {
+                                                                                            e.currentTarget.style.display = 'none';
+                                                                                        }}
+                                                                                    />
+                                                                                </a>
+                                                                            </div>
+                                                                        )
+                                                                    ))}
+                                                                </div>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    })()}
                                                 </div>
                                             )}
                                         </div>
@@ -534,18 +703,9 @@ export default function SingleLoanPage() {
                                 <div className="flex space-x-2">
                                     {!loan.paid && (
                                         <Button 
-                                            className={`${canAddProofs 
-                                                ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800" 
-                                                : "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"} text-white dark:text-gray-100`}
+                                            className="w-full"
                                             disabled={!canAddProofs}
-                                            onClick={() => {
-                                                // Add proofs logic would go here
-                                                toast({
-                                                    title: "Info",
-                                                    description: "Proof upload functionality is coming soon.",
-                                                    variant: "default",
-                                                });
-                                            }}
+                                            onClick={handleOpenProofsDialog}
                                         >
                                             Add Proofs
                                         </Button>
@@ -588,15 +748,15 @@ export default function SingleLoanPage() {
                             <Label htmlFor="proof-links">Proof Links (Optional)</Label>
                             
                             {proofLinks.map((link, index) => (
-                                <div key={index} className="flex items-center gap-2">
-                                    <Input
-                                        id={`proof-link-${index}`}
-                                        placeholder="https://example.com/receipt"
-                                        value={link}
-                                        onChange={(e) => handleProofLinkChange(e.target.value, index)}
-                                        className="flex-1"
-                                    />
-                                    {index > 0 && (
+                                <div key={index} className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            id={`proof-link-${index}`}
+                                            placeholder="https://imgur.com/abcd123"
+                                            value={link}
+                                            onChange={(e) => handleProofLinkChange(e.target.value, index)}
+                                            className={`flex-1 ${!isValidImgurLink(link) && link.trim() !== '' ? 'border-red-500' : ''}`}
+                                        />
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
@@ -605,6 +765,20 @@ export default function SingleLoanPage() {
                                         >
                                             <Trash className="h-4 w-4" />
                                         </Button>
+                                    </div>
+                                    
+                                    {/* Image preview */}
+                                    {link.trim() !== '' && isValidImgurLink(link) && getImageUrl(link) && (
+                                        <div className="mt-1 rounded-md overflow-hidden w-20 h-20 relative">
+                                            <img 
+                                                src={getImageUrl(link)} 
+                                                alt="Preview" 
+                                                className="object-cover w-full h-full"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
+                                            />
+                                        </div>
                                     )}
                                 </div>
                             ))}
@@ -629,6 +803,85 @@ export default function SingleLoanPage() {
                         </Button>
                         <Button onClick={handleSubmitPaid}>
                             Confirm
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Add Proofs Dialog */}
+            <Dialog open={proofsDialogOpen} onOpenChange={setProofsDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Add Proof Links</DialogTitle>
+                        <DialogDescription>
+                            Add Imgur links to images that serve as proof for this loan.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="proof-links">Proof Links (Maximum 4)</Label>
+                            
+                            {proofLinks.map((link, index) => (
+                                <div key={index} className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            id={`proof-link-${index}`}
+                                            placeholder="https://imgur.com/abcd123"
+                                            value={link}
+                                            onChange={(e) => handleProofLinkChange(e.target.value, index)}
+                                            className={`flex-1 ${!isValidImgurLink(link) && link.trim() !== '' ? 'border-red-500' : ''}`}
+                                        />
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            onClick={() => handleRemoveProofLink(index)}
+                                            className="px-2 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                        >
+                                            <Trash className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    
+                                    {/* Image preview */}
+                                    {link.trim() !== '' && isValidImgurLink(link) && getImageUrl(link) && (
+                                        <div className="mt-1 rounded-md overflow-hidden w-20 h-20 relative">
+                                            <img 
+                                                src={getImageUrl(link)} 
+                                                alt="Preview" 
+                                                className="object-cover w-full h-full"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                            
+                            {proofLinkError && (
+                                <p className="text-sm text-red-500">{proofLinkError}</p>
+                            )}
+                            
+                            {proofLinks.length < 4 && (
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={handleAddProofLink}
+                                    className="mt-2 w-full"
+                                >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Another Proof Link
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setProofsDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSubmitProofs}>
+                            Save Proofs
                         </Button>
                     </DialogFooter>
                 </DialogContent>

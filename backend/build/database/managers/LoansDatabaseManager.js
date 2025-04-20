@@ -81,10 +81,10 @@ export default class LoansDatabaseManager {
             throw error instanceof Error ? "Could not update loan: " + error : new Error("Could not update loan!?!: " + String(error));
         }
     }
-    async approveLoan(id, loanerId, loanedId) {
+    async updateLoan(id, loanerId, loanedId, update) {
         const result = await this.db
             .updateTable("loans")
-            .set({ approved: true })
+            .set(update)
             .where("id", '=', id)
             .executeTakeFirst();
         if (result.numUpdatedRows > 0) {
