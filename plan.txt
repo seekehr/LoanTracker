@@ -11,3 +11,8 @@ Add 'approval' feature for the loan and loan proof (in createloan). (NOw WIP)
 [X] Finish notifications / 'delete notif'/'mark notif as read'
 [X] Introduce 'link' in notifications DB so notifs can have links. Then in the
 frontend parse the link in a button
+[ ] Finish 'Mark as Paid'/adding proof to the loan in SingleLoanPage and CreateLoanPage
+[ ] Finish approval notification
+[ ] Some UI touches
+[ ] 30m FAQ page
+[ ] Landing page edits

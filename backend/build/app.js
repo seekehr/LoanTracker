@@ -56,8 +56,19 @@ catch (error) {
     process.exit(1);
 }
 export const app = express();
+const allowedOrigins = [
+    'http://localhost:8080',
+    'http://192.168.1.42:8080', // Replace with your actual local IP
+];
 app.use(cors({
-    origin: 'http://localhost:8080', // Frontend origin
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
 }));
 app.use(cookieParser());

@@ -35,7 +35,7 @@ export function Navbar() {
                 <div className="flex h-16 items-center justify-between">
                     <div className="flex items-center">
                         <Link to="/" className="flex-shrink-0">
-                            <span className="text-2xl font-bold text-white dark:text-white" style={{ fontFamily: 'monospace' }}>
+                            <span className="text-2xl font-bold text-black dark:text-white" style={{ fontFamily: 'monospace' }}>
                                 LoanTracker
                             </span>
                         </Link>
