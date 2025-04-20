@@ -75,6 +75,13 @@ export default class NotificationsDatabaseManager implements IDatabaseManager {
             .execute();
     }
 
+    async getNotificationById(id: number): Promise<Notification|undefined> {
+        return await this.db
+            .selectFrom("notifications")
+            .selectAll()
+            .where("id", '=', id)
+            .executeTakeFirst();
+    }
     /**
      * Updates a specific notification. Currently supports marking as read/unread.
      */

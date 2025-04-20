@@ -23,6 +23,7 @@ import { add_ip } from './routes/middleware/add_ip.js';
 import auth from './routes/middleware/auth.js';
 import RateLimiter from './routes/middleware/ratelimiter.js';
 import getNotificationsRouter from './routes/notifcation/get_notifications.js';
+import markNotificationRouter from './routes/notifcation/mark_notification.js';
 import sendNotificationRouter from './routes/notifcation/send_notification.js';
 import parseTokenRouter from './routes/parse_token.js';
 import "./util/polyfills.js";
@@ -95,4 +96,5 @@ if (rateLimiter instanceof RateLimiter) {
     // -
     app.use('/send-notification', rateLimiter.getRateLimitMiddleware("/send-notification" ,10, 5 *1000), auth, sendNotificationRouter);
     app.use('/get-notifications', rateLimiter.getRateLimitMiddleware("/get-notifications", 20, 5 * 1000), auth, getNotificationsRouter);
+    app.use('/mark-notification', rateLimiter.getRateLimitMiddleware("/mark-notification", 20, 5 * 1000), auth, markNotificationRouter);        
 }
