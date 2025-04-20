@@ -75,11 +75,20 @@ export default function ViewLoansPage() {
                 const loanedArray = typeof data.loaned === 'string' ? JSON.parse(data.loaned) : (data.loaned || []);
                 const couldNotLoadArray = Array.isArray(data.couldNotLoad) ? data.couldNotLoad : [];
                 
-                setLoans(Array.isArray(loansArray) ? loansArray : []);
-                setLoaned(Array.isArray(loanedArray) ? loanedArray : []);
+                // Sort loans and loaned arrays by ID in descending order (higher to lower)
+                const sortedLoans = Array.isArray(loansArray) 
+                    ? [...loansArray].sort((a, b) => b.id - a.id) 
+                    : [];
+                    
+                const sortedLoaned = Array.isArray(loanedArray) 
+                    ? [...loanedArray].sort((a, b) => b.id - a.id) 
+                    : [];
+                
+                setLoans(sortedLoans);
+                setLoaned(sortedLoaned);
                 setCouldNotLoadCount(couldNotLoadArray.length);
 
-                await Promise.all([...loansArray.map((loan: Loan) => fetchProfile(loan.loanerId)), ...loanedArray.map((loan: Loan) => fetchProfile(loan.loanedId))]);
+                await Promise.all([...sortedLoans.map((loan: Loan) => fetchProfile(loan.loanerId)), ...sortedLoaned.map((loan: Loan) => fetchProfile(loan.loanedId))]);
             } catch (error) {
                 if (error instanceof Error) {
                     console.error("Error fetching loans:", error.message);

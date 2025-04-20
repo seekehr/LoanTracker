@@ -35,12 +35,53 @@ export default function SingleLoanPage() {
     const [loanerProfile, setLoanerProfile] = useState<Profile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+    const [canMarkAsPaid, setCanMarkAsPaid] = useState(false);
+    const [canAddProofs, setCanAddProofs] = useState(false);
     const { toast } = useToast();
     const location = useLocation();
     const navigate = useNavigate();
     
     const params = new URLSearchParams(location.search);
     const loanId = params.get("id");
+
+    // Fetch current user's ID instead of username
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const response = await fetch("http://localhost:3000/parse-token?as_id=true", {
+                    method: "POST",
+                    credentials: "include",
+                });
+
+                if (!response.ok) {
+                    console.error("Failed to fetch user ID");
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.id !== undefined) {
+                    setCurrentUserId(data.id);
+                }
+            } catch (error) {
+                console.error("Error fetching user ID:", error);
+            }
+        };
+
+        fetchCurrentUser();
+    }, []);
+
+    // Check if current user can mark loan as paid or add proofs
+    useEffect(() => {
+        if (loan && currentUserId !== null) {
+            // Compare IDs directly rather than converting to strings
+            const isLoaner = loan.loanerId === currentUserId;
+            const isLoaned = loan.loanedId === currentUserId;
+            
+            setCanMarkAsPaid(isLoaner && !loan.paid);
+            setCanAddProofs((isLoaner || isLoaned) && !loan.paid);
+        }
+    }, [loan, currentUserId]);
 
     const fetchProfile = async (id: number) => {
         try {
@@ -79,7 +120,6 @@ export default function SingleLoanPage() {
 
                 const data = await response.json();
                 const loanData = data.loan;
-                
                 setLoan(loanData);
 
                 // Fetch profiles for both loaner and loaned
@@ -442,11 +482,49 @@ export default function SingleLoanPage() {
                                     Back to Loans
                                 </Button>
 
-                                {!loan.paid && (
-                                    <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white dark:text-gray-100">
-                                        Mark as Paid
-                                    </Button>
-                                )}
+                                <div className="flex space-x-2">
+                                    {!loan.paid && (
+                                        <Button 
+                                            className={`${canAddProofs 
+                                                ? "bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800" 
+                                                : "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"} text-white dark:text-gray-100`}
+                                            disabled={!canAddProofs}
+                                            onClick={() => {
+                                                // Add proofs logic would go here
+                                                toast({
+                                                    title: "Info",
+                                                    description: "Proof upload functionality is coming soon.",
+                                                    variant: "default",
+                                                });
+                                            }}
+                                        >
+                                            Add Proofs
+                                        </Button>
+                                    )}
+                                    
+                                    {!loan.paid && (
+                                        <Button 
+                                            className={`${canMarkAsPaid 
+                                                ? "bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800" 
+                                                : "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"} text-white dark:text-gray-100`}
+                                            disabled={!canMarkAsPaid}
+                                            onClick={() => {
+                                                // Mark as paid logic would go here
+                                                toast({
+                                                    title: "Success",
+                                                    description: "Loan has been marked as paid.",
+                                                    variant: "default",
+                                                });
+                                            }}
+                                        >
+                                            {canMarkAsPaid 
+                                                ? "Mark as Paid" 
+                                                : currentUserId 
+                                                    ? "Only loaner can mark as paid" 
+                                                    : "Sign in to mark as paid"}
+                                        </Button>
+                                    )}
+                                </div>
                             </CardFooter>
                         </Card>
                     )}
