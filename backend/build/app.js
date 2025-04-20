@@ -1,4 +1,10 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
+import cors from "cors";
+import "dotenv/config";
+import * as console from "node:console";
+import * as process from "node:process";
+import DatabaseCreator from './database/DatabaseCreator.js';
 import loginRouter from './routes/account/login.js';
 import profileRouter from "./routes/account/profile.js";
 import registerRouter from "./routes/account/register.js";
@@ -6,22 +12,19 @@ import checkUsernameRouter from "./routes/check_username.js";
 import approveLoanRouter from './routes/loan/approve_loan.js';
 import createLoanRouter from './routes/loan/create_loan.js';
 import viewLoansRouter from './routes/loan/view_loans.js';
-import parseTokenRouter from './routes/parse_token.js';
-import cookieParser from 'cookie-parser';
-import cors from "cors";
-import "dotenv/config";
-import * as console from "node:console";
-import * as process from "node:process";
-import DatabaseCreator from './database/DatabaseCreator.js';
 import { add_ip } from './routes/middleware/add_ip.js';
 import auth from './routes/middleware/auth.js';
 import RateLimiter from './routes/middleware/ratelimiter.js';
+import getNotificationsRouter from './routes/notifcation/get_notifications.js';
+import sendNotificationRouter from './routes/notifcation/send_notification.js';
+import parseTokenRouter from './routes/parse_token.js';
 import "./util/polyfills.js";
 const dbCreator = new DatabaseCreator();
 let db;
 let redisDb;
 export let accDb;
 export let loansDb;
+export let notifsDb;
 let rateLimiter;
 export const jwtSecret = process.env["JWT_SECRET"] ?? "";
 if (jwtSecret === "") {
@@ -44,7 +47,7 @@ try {
         console.log("Redis Client Connected");
     };
     await connectToRedis();
-    [accDb, loansDb] = await dbCreator.initDatabase(db);
+    [accDb, loansDb, notifsDb] = await dbCreator.initDatabase(db);
 }
 catch (error) {
     console.log("Error during DB init: " + error);
@@ -69,4 +72,7 @@ if (rateLimiter instanceof RateLimiter) {
     // -
     app.use('/parse-token', rateLimiter.getRateLimitMiddleware("/parse-token", 10, 5 * 1000), auth, parseTokenRouter);
     app.use('/approve-loan', rateLimiter.getRateLimitMiddleware("/approve-loan", 10, 5 * 1000), auth, approveLoanRouter);
+    // -
+    app.use('/send-notification', rateLimiter.getRateLimitMiddleware("/send-notification", 10, 5 * 1000), auth, sendNotificationRouter);
+    app.use('/get-notifications', rateLimiter.getRateLimitMiddleware("/get-notifications", 20, 5 * 1000), auth, getNotificationsRouter);
 }

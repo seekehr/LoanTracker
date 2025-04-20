@@ -97,8 +97,6 @@ export default class LoansDatabaseManager {
         const loaneds = await accDb.getLoanedFromAccountId(loanerId);
         if (typeof (loaneds) === "object" && "loaned" in loaneds) {
             const loaned = loaneds.loaned;
-            console.log(loaned);
-            console.log(typeof (loaned));
             if (typeof (loaned) === "object" && loaned !== null && "loaned" in loaned && Array.isArray(loaned.loaned)) {
                 loanedIds.push(...loaned.loaned);
             }
@@ -156,10 +154,10 @@ export default class LoansDatabaseManager {
     }
     async removeApprove(id, loanId) {
         const currentApproves = await this.getToApproves(id);
-        if (!currentApproves || typeof (currentApproves) !== "object" || !("toApprove" in currentApproves))
+        if (!currentApproves || typeof (currentApproves) !== "object" || !("toApprove" in currentApproves) || typeof (currentApproves.toApprove) !== "object")
             return false;
-        const approves = JSON.parse(currentApproves.toApprove);
-        const filteredApproves = approves.toApprove.filter((id) => id !== loanId);
+        const approves = currentApproves.toApprove;
+        const filteredApproves = Array.isArray(approves) ? approves.filter((id) => id !== loanId) : [];
         const result = await this.db
             .updateTable("accounts")
             .set({ toApprove: JSON.stringify({ toApprove: filteredApproves }) })

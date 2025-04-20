@@ -6,6 +6,7 @@ import process from "node:process";
 import redis from "redis";
 import AccountsDatabaseManager from "./managers/AccountsDatabaseManager.js";
 import LoansDatabaseManager from "./managers/LoansDatabaseManager.js";
+import NotificationsDatabaseManager from './managers/NotificationsDatabaseManager.js';
 const DB_NAME = "loantracker";
 const DB_PORT = 3306;
 const DB_HOST = "localhost";
@@ -40,6 +41,7 @@ export default class DatabaseCreator {
         // TODO: Dynamic loading of managers
         const accDb = new AccountsDatabaseManager(db);
         const loansDb = new LoansDatabaseManager(db);
+        const notifDb = new NotificationsDatabaseManager(db);
         try {
             await Promise.all([
                 accDb.init().then((result) => {
@@ -52,8 +54,13 @@ export default class DatabaseCreator {
                         throw new Error("Loans Database cannot be initialised.");
                     }
                 }),
+                notifDb.init().then((result) => {
+                    if (!result) {
+                        throw new Error("Notifications Database cannot be initialised.");
+                    }
+                }),
             ]);
-            return [accDb, loansDb];
+            return [accDb, loansDb, notifDb];
         }
         catch (error) {
             throw new Error("Error caught during initialisation: " + error);
