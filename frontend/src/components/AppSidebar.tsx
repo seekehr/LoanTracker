@@ -1,5 +1,6 @@
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ChevronLeft, ChevronRight, FilePlus, FileText, Home, Settings } from "lucide-react";
+import { useNotifications } from "@/hooks/use-notifications";
+import { Bell, ChevronLeft, ChevronRight, FilePlus, FileText, Home, Settings } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -9,10 +10,12 @@ export function AppSidebar() {
     const currentPath = window.location.pathname;
     const [isCollapsed, setIsCollapsed] = useState(false);
     const isMobile = useIsMobile();
+    const { hasUnread } = useNotifications();
 
     const topMenuItems = [
         { title: "Create Loan", icon: FilePlus, path: "/create-loan" },
         { title: "Manage Loans", icon: FileText, path: "/manage-loans" },
+        { title: "Notifications", icon: Bell, path: "/notifications" },
     ];
 
     const settingsItem = { title: "Settings", icon: Settings, path: "/profile" };
@@ -23,24 +26,32 @@ export function AppSidebar() {
             key={item.title}
             href={item.path}
             title={isCollapsed ? item.title : undefined}
-            onClick={(e) => { 
-                e.preventDefault(); 
+            onClick={(e) => {
+                e.preventDefault();
                 navigate(item.path);
                 if (isMobile) setIsCollapsed(true);
             }}
-            className={`flex items-center gap-3 ${isCollapsed && hideText ? 'justify-center px-0' : 'px-3'} py-2 rounded-lg text-sm font-medium transition-all duration-200 group relative ${ 
-                currentPath === item.path 
-                    ? "bg-sky-100 text-blue-600 dark:bg-blue-900/30  0"
+            className={`flex items-center gap-3 ${isCollapsed && hideText ? 'justify-center px-0' : 'px-3'} py-2 rounded-lg text-sm font-medium transition-all duration-200 group relative ${
+                currentPath === item.path
+                    ? "bg-sky-100 text-blue-600 dark:bg-blue-900/30"
                     : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/50"
             }`}
         >
-            <item.icon className={`h-5 w-5 flex-shrink-0 transition-colors duration-200 ${ 
-                currentPath === item.path
-                    ? "text-blue-500  0"
-                    : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
-            }`} />
+            <div className="relative">
+                <item.icon className={`h-5 w-5 flex-shrink-0 transition-colors duration-200 ${
+                    currentPath === item.path
+                        ? "text-blue-500"
+                        : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300"
+                }`} />
+                {item.title === "Notifications" && hasUnread && !isCollapsed && (
+                    <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-800" />
+                )}
+                {item.title === "Notifications" && hasUnread && isCollapsed && (
+                    <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-sky-100/90 dark:ring-gray-950/95" />
+                )}
+            </div>
             {!hideText && (
-                <span className={`whitespace-nowrap transition-opacity duration-200 delay-100 ${ 
+                <span className={`whitespace-nowrap transition-opacity duration-200 delay-100 ${
                     isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
                 }`}>
                     {item.title}

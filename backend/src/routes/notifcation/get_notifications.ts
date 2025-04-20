@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import jwt from 'jsonwebtoken'; // Import JwtPayload
+import { inspect } from 'util';
 import { accDb, jwtSecret, notifsDb } from '../../app.js';
 // Removed DecodedToken import as we will decode here
 
@@ -7,7 +8,7 @@ const router: Router = express.Router();
 
 router.get('/', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
-
+        console.log("get notifications called!");
         if (!req.token) {
             console.error('Authentication error: Token string missing from request');
             res.status(401).json({ error: 'Authentication required.' });
@@ -41,8 +42,11 @@ router.get('/', async (req: express.Request, res: express.Response, next: expres
             return;
         }
 
+        console.log("accountId: ", accountId);
         const notifications = await notifsDb.getNotificationsForAccount(accountId);
 
+        console.log("notifications successful!");
+        console.log(inspect(notifications));
         res.status(200).json(notifications);
 
     } catch (error) {

@@ -1,19 +1,20 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { notifsDb } from '../../app.js'; // Corrected: notifDb -> notifsDb
+import { accDb, notifsDb } from '../../app.js'; // Corrected: notifDb -> notifsDb
 const router = express.Router();
 router.post('/', async (req, res) => {
     try {
-        const { accountId, type, message } = req.query;
-        if (!accountId || !type || !message) {
+        console.log("send notification called!");
+        const { username, type, message } = req.query;
+        if (!username || !type || !message || typeof username !== 'string' || typeof type !== 'string' || typeof message !== 'string') {
             res.status(400).json({
                 error: 'Missing required parameters',
-                required: ['accountId', 'type', 'message']
+                required: ['username', 'type', 'message']
             });
             return;
         }
-        const targetAccountId = Number(accountId);
-        if (isNaN(targetAccountId)) {
+        const targetAccountId = await accDb.getIdFromUsername(username);
+        if (targetAccountId === undefined) {
             res.status(400).json({ error: 'Invalid accountId format. Must be a number.' });
             return;
         }
@@ -33,6 +34,7 @@ router.post('/', async (req, res) => {
             message: notificationMessage,
         };
         const notificationId = await notifsDb.createNotification(newNotification);
+        console.log("notification created successfully!");
         res.status(201).json({
             message: 'Notification created successfully',
             notificationId: notificationId

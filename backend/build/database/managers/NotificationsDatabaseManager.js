@@ -61,7 +61,6 @@ export default class NotificationsDatabaseManager {
             .selectFrom("notifications")
             .selectAll()
             .where("accountId", '=', accountId)
-            .orderBy("timeCreated", "desc")
             .execute();
     }
     /**

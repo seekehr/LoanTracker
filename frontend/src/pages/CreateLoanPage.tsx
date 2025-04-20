@@ -59,6 +59,7 @@ export default function CreateLoanPage() {
     const [loanedUsernameValid, setLoanedUsernameValid] = useState<boolean | null>(null);
     const [loanedDisplayName, setLoanedDisplayName] = useState<string | null>(null);
     const [loanedDisplayPfp, setLoanedDisplayPfp] = useState<string | null>(null);
+    const [typeUser, setTypeUser] = useState<'loaner' | 'loaned' |null>(null);
 
     const { toast } = useToast();
     const form = useForm<z.infer<typeof formSchema>>({
@@ -76,7 +77,6 @@ export default function CreateLoanPage() {
     const watchedLoanedId = form.watch('loanedId');
     const isUserLoaner = watchedLoanerId === currentUserUsername && !!currentUserUsername;
     const isUserLoaned = watchedLoanedId === currentUserUsername && !!currentUserUsername;
-    const [typeUser, setTypeUser] = useState<'loaner' | 'loaned' |null>(null);
 
     const handleInputChange = useCallback((fieldType: 'loaner' | 'loaned', currentValue: string) => {
         if (!currentUserUsername) return; 
@@ -161,6 +161,10 @@ export default function CreateLoanPage() {
                         setDisplayName(null);
                         setDisplayPfp(null);
                     }
+                } else {
+                    // Reset profile info if username is not valid or fetch fails
+                    setDisplayName(null);
+                    setDisplayPfp(null);
                 }
             } catch (error) {
                 console.error("Error checking username:", error);
@@ -252,7 +256,58 @@ export default function CreateLoanPage() {
             toast({
                 title: "Success",
                 description: "Loan created successfully",
+                variant: "default",
             });
+
+            // ---- Start Notification Logic ----
+            try {
+                const loanId = data.loanId; // Assuming the response includes the loan ID
+                if (!loanId) {
+                    console.warn("Loan ID not found in response, skipping notification.");
+                } else if (currentUserUsername) {
+                    let recipientUsername: string | null = null;
+                    let actionText: string = '';
+
+                    if (values.loanerId === currentUserUsername) {
+                        // Current user is the loaner, notify the loaned
+                        recipientUsername = values.loanedId;
+                        actionText = 'borrow'; // The recipient needs to borrow
+                    } else if (values.loanedId === currentUserUsername) {
+                        // Current user is the loaned, notify the loaner
+                        recipientUsername = values.loanerId;
+                        actionText = 'loan'; // The recipient needs to loan (approve the loan)
+                    }
+
+                    if (recipientUsername) {
+                        const notificationMessage = `New loan request from ${currentUserUsername} for you to ${actionText}. LoanID:${loanId} [Approve] [Decline] [Details]`;
+
+                        const notificationParams = new URLSearchParams({
+                            username: recipientUsername,
+                            type: 'approval', // Use 'approval' type for loan requests
+                            message: notificationMessage,
+                        });
+
+                        const notifResponse = await fetch(`http://localhost:3000/send-notification?${notificationParams.toString()}`, {
+                            method: 'POST',
+                            credentials: 'include',
+                        });
+
+                        if (!notifResponse.ok) {
+                            const notifError = await notifResponse.json();
+                            console.error("Failed to send notification:", notifError.error);
+                            toast({ title: "Warning", description: "Loan created, but failed to send notification.", variant: "destructive" });
+                        } else {
+                             console.log(`Notification sent to ${recipientUsername}`);
+                        }
+                    } else {
+                         console.error("Could not determine recipient username for notification.");
+                    }
+                }
+            } catch (notifError) {
+                 console.error("Error sending notification:", notifError);
+            }
+            // ---- End Notification Logic ----
+
             form.reset();
             setLoanerUsernameValid(null);
             setLoanerDisplayName(null);

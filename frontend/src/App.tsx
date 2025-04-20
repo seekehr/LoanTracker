@@ -9,6 +9,7 @@ import CreateLoanPage from "./pages/CreateLoanPage.js";
 import Index from "./pages/IndexPage.js";
 import Login from "./pages/LoginPage.js";
 import NotFound from "./pages/NotFoundPage.js";
+import NotificationsPage from "./pages/NotificationsPage.js";
 import ProfilePage from "./pages/ProfilePage.js";
 import RegisterPage from "./pages/RegisterPage.js";
 import ViewLoansPage from "./pages/ViewLoansPage.js";
@@ -43,6 +44,7 @@ const App = () => (
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/create-loan" element={<CreateLoanPage />} />
                         <Route path="/manage-loans" element={<ViewLoansPage />} />
+                        <Route path="/notifications" element={<NotificationsPage />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
                         

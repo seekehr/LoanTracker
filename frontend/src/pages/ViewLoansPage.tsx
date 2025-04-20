@@ -1,6 +1,7 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AppSidebar } from "../components/AppSidebar";
 import { LoanCard } from "../components/LoanCard";
@@ -105,7 +106,10 @@ export default function ViewLoansPage() {
                 </div>
                 <div className="flex-1 flex justify-center py-6 lg:py-10 px-4 sm:px-6 lg:px-8">
                     <main className="w-full max-w-4xl text-center">
-                        <h1 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-200">Loading Loans...</h1>
+                    <div className="flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                        <h1 className="ml-3 text-gray-600 dark:text-gray-400">Loading loans...</h1>
+                    </div>
                     </main>
                 </div>
             </div>
