@@ -34,7 +34,6 @@ router.post('/', async (req, res) => {
         else {
             parsedLink = null;
         }
-        console.log("Parsed Link: " + parsedLink);
         const newNotification = {
             accountId: targetAccountId,
             type: notificationType, // Type assertion after validation
