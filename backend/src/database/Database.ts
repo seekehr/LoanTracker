@@ -9,6 +9,7 @@ import {
 export interface Database {
     accounts: AccountsTable
     loans: LoansTable
+    notifications: NotificationsTable
 }
 
 // ====================
@@ -70,3 +71,23 @@ interface LoansTable extends BaseLoanInterface {
 export type Loan = Selectable<LoansTable>
 export type NewLoan = Insertable<BaseLoanInterface> // Use Base for insertion, ID is generated
 export type UpdateLoan = Updateable<LoanPaid> // Allow updating any selectable field except ID and accountId
+
+// ====================
+//     Notifications
+// ====================
+
+interface BaseNotificationInterface {
+    accountId: number
+    type: 'approval' | 'message' | 'system'
+    message: string   
+}
+
+interface NotificationsTable extends BaseNotificationInterface {
+    id: Generated<number>
+    read: boolean
+    timeCreated: ColumnType<Date, number, never>
+}
+
+export type Notification = Selectable<NotificationsTable>
+export type NewNotification = Insertable<BaseNotificationInterface>
+export type UpdateNotification = Updateable<{ read: boolean }>

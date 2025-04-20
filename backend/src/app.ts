@@ -20,6 +20,7 @@ import { Database } from "./database/Database.js";
 import DatabaseCreator from './database/DatabaseCreator.js';
 import AccountsDatabaseManager from './database/managers/AccountsDatabaseManager.js';
 import LoansDatabaseManager from './database/managers/LoansDatabaseManager.js';
+import NotificationsDatabaseManager from './database/managers/NotificationsDatabaseManager.js';
 import { add_ip } from './routes/middleware/add_ip.js';
 import auth from './routes/middleware/auth.js';
 import RateLimiter from './routes/middleware/ratelimiter.js';
@@ -31,6 +32,7 @@ let redisDb: RedisClientType;
 
 export let accDb: AccountsDatabaseManager;
 export let loansDb: LoansDatabaseManager;
+export let notifsDb: NotificationsDatabaseManager;
 
 let rateLimiter: RateLimiter|undefined;
 
@@ -59,7 +61,7 @@ try {
     };
     await connectToRedis();
 
-    [accDb, loansDb] = await dbCreator.initDatabase(db);
+    [accDb, loansDb, notifsDb] = await dbCreator.initDatabase(db);
 } catch (error) {
     console.log("Error during DB init: " + error);
     process.exit(1);
