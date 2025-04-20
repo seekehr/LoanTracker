@@ -9,13 +9,9 @@ A website built to track loans, inspired by the 'khata' system often used in Sou
 **WIP:**
 I have pretty major exams in like 4 days so I'll be unable to complete the WIPs right now, perhaps later if this project shows some promise. WIP features include:
 
-[ ] Automatically remind user who is borrowing through contact information (e.g Whatsapp, Email, and so on).
-
-[ ] Allow searching through a search bar for user profiles
-
-[ ] Allow moderation tools
-
-[ ] Use AI to verify identity cards
-
-[ ] Complete the loan approval system
+- [ ] Automatically remind user who is borrowing through contact information (e.g Whatsapp, Email, and so on).
+- [ ] Allow searching through a search bar for user profiles
+- [ ] Allow moderation tools
+- [ ] Use AI to verify identity cards
+- [ ] Complete the loan approval system
 
