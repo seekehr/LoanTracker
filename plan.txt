@@ -8,6 +8,6 @@ So basically, you can use this app to take and give loans.
 TODO: Maybe improve UI? (Done) [ ] Otherwise create FAQ page. 
 Add 'approval' feature for the loan and loan proof (in createloan). (NOw WIP)
 
-[ ] Finish notifications / 'delete notif'/'mark notif as read'
-[ ] Introduce 'link' in notifications DB so notifs can have links. Then in the
+[X] Finish notifications / 'delete notif'/'mark notif as read'
+[X] Introduce 'link' in notifications DB so notifs can have links. Then in the
 frontend parse the link in a button

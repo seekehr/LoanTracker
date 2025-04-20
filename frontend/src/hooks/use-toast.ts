@@ -5,6 +5,11 @@ import type {
     ToastProps,
 } from "@/components/ui/toast"
 
+// Add a type definition for our custom variants
+type CustomToastProps = ToastProps & {
+    variant?: "default" | "destructive" | "success"
+}
+
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
@@ -188,4 +193,5 @@ function useToast() {
     }
 }
 
-export { useToast, toast }
+export { toast, useToast }
+

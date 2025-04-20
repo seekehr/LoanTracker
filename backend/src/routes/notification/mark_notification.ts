@@ -28,7 +28,6 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         // Mark the notification as read
         const success = await notifsDb.markNotificationAsRead(notificationId);
-        
         if (success) {
             res.status(200).json({ message: 'Notification marked as read' });
         } else {

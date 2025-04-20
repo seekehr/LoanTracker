@@ -65,6 +65,13 @@ export default class NotificationsDatabaseManager {
             .where("accountId", '=', accountId)
             .execute();
     }
+    async getNotificationById(id) {
+        return await this.db
+            .selectFrom("notifications")
+            .selectAll()
+            .where("id", '=', id)
+            .executeTakeFirst();
+    }
     /**
      * Updates a specific notification. Currently supports marking as read/unread.
      */

@@ -32,6 +32,7 @@ const LoginPage = () => {
                     toast({
                         title: "Login successful",
                         description: "Welcome back!",
+                        variant: "default",
                     });
                     addCookie("token", data["token"] as string, TOKEN_COOKIE_EXPIRY);
                     addCookie("not-new", "true", 31536000);

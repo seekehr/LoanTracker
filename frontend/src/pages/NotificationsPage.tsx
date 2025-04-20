@@ -4,6 +4,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { useNotifications } from "@/hooks/use-notifications";
 import { useToast } from "@/hooks/use-toast";
 import { BellRing, CheckCircle, Info, Link as LinkIcon, Loader2, MailCheck, XCircle } from "lucide-react";
+import React from "react";
 
 // Helper to parse the notification message for actions
 const parseNotificationMessage = (message: string) => {
@@ -56,8 +57,16 @@ const formatRelativeTime = (dateInput: string | number | Date | null | undefined
 };
 
 export default function NotificationsPage() {
-    const { notifications, isLoading, error } = useNotifications();
+    const { notifications, isLoading, error, refetch } = useNotifications();
     const { toast } = useToast();
+    const [localNotifications, setLocalNotifications] = React.useState<any[]>([]);
+
+    // Update local notifications when the fetched notifications change
+    React.useEffect(() => {
+        if (notifications) {
+            setLocalNotifications(notifications);
+        }
+    }, [notifications]);
 
     // Placeholder functions for button actions
     const handleApprove = (loanId: string | null) => {
@@ -82,11 +91,50 @@ export default function NotificationsPage() {
     };
 
     // Handler for the Mark as Read button
-    const handleMarkAsRead = (notificationId: number, e: React.MouseEvent) => {
+    const handleMarkAsRead = async (notificationId: number, e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent event bubbling if the card is clickable
-        console.log(`Marking notification ${notificationId} as read (WIP)`);
-        alert('Mark as read - WIP');
-        // TODO: Implement API call to mark as read & refetch or update state
+        
+        try {
+            const response = await fetch(`http://localhost:3000/mark-notification?id=${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Important for sending cookies with request
+            });
+            
+            console.log(`Response: ${response.status}`);
+            if (!response.ok) {
+                throw new Error('Failed to mark notification as read');
+            }
+            
+            // Success - show toast and refetch notifications
+            toast({
+                title: "Success",
+                description: "Notification marked as read",
+                variant: "success",
+            });
+            
+            // Refetch notifications if the function is available
+            if (typeof refetch === 'function') {
+                refetch();
+            } else {
+                // Update the local state as a fallback
+                setLocalNotifications(prevNotifications => 
+                    prevNotifications.map(notif => 
+                        notif.id === notificationId ? { ...notif, read: true } : notif
+                    )
+                );
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+            toast({
+                title: "Error",
+                description: error instanceof Error ? error.message : 'Failed to mark notification as read',
+                variant: "destructive",
+            });
+        }
     };
 
     return (
@@ -116,7 +164,7 @@ export default function NotificationsPage() {
                         </div>
                     )}
 
-                    {!isLoading && !error && notifications.length === 0 && (
+                    {!isLoading && !error && localNotifications.length === 0 && (
                          <div className="text-center py-10">
                             <BellRing className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
                             <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No notifications</h3>
@@ -124,9 +172,9 @@ export default function NotificationsPage() {
                          </div>
                     )}
 
-                    {!isLoading && !error && notifications.length > 0 && (
+                    {!isLoading && !error && localNotifications.length > 0 && (
                         <div className="space-y-4">
-                            {notifications.map((notif) => {
+                            {localNotifications.map((notif) => {
                                 const parsed = parseNotificationMessage(notif.message);
                                 const Icon = notif.type === 'approval' ? BellRing :
                                              notif.type === 'message' ? Info :
