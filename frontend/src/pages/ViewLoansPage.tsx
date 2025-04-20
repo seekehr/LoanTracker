@@ -126,13 +126,13 @@ export default function ViewLoansPage() {
             <div className="flex-1 flex justify-center py-6 lg:py-10 pl-8 pr-8 sm:pl-10 sm:pr-10 lg:pl-20 lg:pr-16">
 
                 <main className="w-full max-w-4xl">
-                    <div className="flex items-center justify-between mb-8">
+                    <h1 className={`text-3xl font-bold text-blue-600 dark:text-blue-400`} style={{ fontFamily: 'monospace' }}>
+                        Manage Loans
+                    </h1>
+
+                    <div className="flex items-center mb-8">
                         <div className="flex items-center space-x-2">
-                            <h1 className={`text-4xl font-bold text-blue-600`} style={{ fontFamily: 'monospace' }}>
-                                Manage Loans
-                            </h1>
-                            {/* Render red boxes for items that could not be loaded */}
-                            {Array.from({ length: couldNotLoadCount }).map((_, index) => (
+                             {Array.from({ length: couldNotLoadCount }).map((_, index) => (
                                 <div
                                     key={index}
                                     className="w-3 h-3 bg-red-500 bg-opacity-50 border border-red-700 rounded-sm"
@@ -141,6 +141,7 @@ export default function ViewLoansPage() {
                             ))}
                         </div>
                     </div>
+
                     {noLoansFound ? (
                         <div className="flex justify-center items-center h-64">
                             <p className="text-xl text-gray-500 dark:text-gray-400">

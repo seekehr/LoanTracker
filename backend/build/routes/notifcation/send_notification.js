@@ -4,8 +4,8 @@ import { accDb, notifsDb } from '../../app.js'; // Corrected: notifDb -> notifsD
 const router = express.Router();
 router.post('/', async (req, res) => {
     try {
-        console.log("send notification called!");
-        const { username, type, message } = req.query;
+        let parsedLink = null;
+        let { username, type, message, link } = req.query;
         if (!username || !type || !message || typeof username !== 'string' || typeof type !== 'string' || typeof message !== 'string') {
             res.status(400).json({
                 error: 'Missing required parameters',
@@ -28,13 +28,20 @@ router.post('/', async (req, res) => {
             res.status(400).json({ error: 'Invalid message length. Must be between 1 and 500 characters.' });
             return;
         }
+        if (link && typeof link === 'string') {
+            parsedLink = String(req.query.link);
+        }
+        else {
+            parsedLink = null;
+        }
+        console.log("Parsed Link: " + parsedLink);
         const newNotification = {
             accountId: targetAccountId,
             type: notificationType, // Type assertion after validation
+            link: parsedLink,
             message: notificationMessage,
         };
         const notificationId = await notifsDb.createNotification(newNotification);
-        console.log("notification created successfully!");
         res.status(201).json({
             message: 'Notification created successfully',
             notificationId: notificationId

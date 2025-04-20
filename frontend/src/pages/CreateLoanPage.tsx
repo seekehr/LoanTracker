@@ -213,7 +213,7 @@ export default function CreateLoanPage() {
             const notificationParams = new URLSearchParams({
                 username: recipientUsername,
                 type: 'approval',
-                message: notificationMessage,
+                message: notificationMessage
             });
 
             try {
@@ -244,6 +244,7 @@ export default function CreateLoanPage() {
                 username: currentUserUsername,
                 type: 'system',
                 message: selfNotificationMessage,
+                link: "http://localhost:3000/"
             });
 
             try {
@@ -365,14 +366,12 @@ export default function CreateLoanPage() {
             </div>
             <div className="flex-1 flex justify-center py-6 lg:py-10 px-4 sm:px-6 lg:px-8">
                 <main className="w-full max-w-2xl">
-                    <div className="flex items-center justify-between mb-4">
-                        <h1 className={`text-4xl font-bold text-blue-600  0`} style={{ fontFamily: 'monospace' }}>
-                            Create New Loan
-                        </h1>
-                    </div>
+                    <h1 className={`text-3xl font-bold text-blue-600 dark:text-blue-400`} style={{ fontFamily: 'monospace' }}>
+                        Create New Loan
+                    </h1>
                     <div className="mb-4 h-6">
                         {typeUser && (
-                            <p className={`text-sm font-medium text-green-700 dark:text-green-400 ${typeUser === 'loaned' ? 'bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded inline-block' : ''}`}>
+                            <p className={`text-sm font-medium ${typeUser === 'loaner' ? 'text-green-700 dark:text-green-400' : 'text-blue-700 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-1 rounded inline-block'}`}>
                                 {typeUser === 'loaner' ? 'You are loaning someone.' : 'You are borrowing from someone.'}
                             </p>
                         )}

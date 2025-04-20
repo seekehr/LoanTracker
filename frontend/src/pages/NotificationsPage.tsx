@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useNotifications } from "@/hooks/use-notifications";
 import { useToast } from "@/hooks/use-toast";
-import { BellRing, CheckCircle, Info, Loader2, MailCheck, XCircle } from "lucide-react";
+import { BellRing, CheckCircle, Info, Link as LinkIcon, Loader2, MailCheck, XCircle } from "lucide-react";
 
 // Helper to parse the notification message for actions
 const parseNotificationMessage = (message: string) => {
@@ -23,9 +23,25 @@ const parseNotificationMessage = (message: string) => {
     return { text: message, loanId: null, actions: null };
 };
 
-// Helper function to format dates nicely
-const formatRelativeTime = (dateString: string) => {
-    const date = new Date(dateString);
+// Helper function to format dates nicely - make more robust
+const formatRelativeTime = (dateInput: string | number | Date | null | undefined): string => {
+    if (!dateInput) {
+        return 'Invalid date'; // Handle null or undefined input
+    }
+
+    let date: Date;
+    try {
+        date = new Date(dateInput);
+        // Check if the date object is valid
+        if (isNaN(date.getTime())) {
+            console.warn("formatRelativeTime received invalid date input:", dateInput);
+            return 'Invalid date';
+        }
+    } catch (e) {
+        console.error("Error creating Date object in formatRelativeTime:", e);
+        return 'Invalid date';
+    }
+
     const now = new Date();
     const diffSeconds = Math.round((now.getTime() - date.getTime()) / 1000);
     const diffMinutes = Math.round(diffSeconds / 60);
@@ -36,7 +52,7 @@ const formatRelativeTime = (dateString: string) => {
     if (diffMinutes < 60) return `${diffMinutes}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString(); // Or a more specific format
+    return date.toLocaleDateString();
 };
 
 export default function NotificationsPage() {
@@ -113,8 +129,8 @@ export default function NotificationsPage() {
                             {notifications.map((notif) => {
                                 const parsed = parseNotificationMessage(notif.message);
                                 const Icon = notif.type === 'approval' ? BellRing :
-                                             notif.type === 'message' ? Info : // Example, choose appropriate icon
-                                             BellRing; // Default or system icon
+                                             notif.type === 'message' ? Info :
+                                             BellRing;
 
                                 return (
                                     <div key={notif.id} className="relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm rounded-lg p-4 flex items-start space-x-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50">
@@ -127,36 +143,37 @@ export default function NotificationsPage() {
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm text-gray-800 dark:text-gray-200 pr-10">{parsed.text}</p>
                                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                {formatRelativeTime(notif.createdAt)}
+                                                 {formatRelativeTime(notif.timeCreated)}
                                             </p>
-                                            {parsed.actions && (
-                                                <div className="mt-3 flex space-x-2">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800/50 hover:text-green-800 dark:hover:text-green-300"
-                                                        onClick={() => handleApprove(parsed.loanId)}
+                                            <div className="mt-3 flex flex-wrap gap-2 items-center">
+                                                {parsed.actions && (
+                                                    <>
+                                                        <Button size="sm" variant="outline" className="bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800/50 hover:text-green-800 dark:hover:text-green-300" onClick={() => handleApprove(parsed.loanId)}>
+                                                             <CheckCircle className="h-4 w-4 mr-1.5" /> Approve
+                                                        </Button>
+                                                        <Button size="sm" variant="outline" className="bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-800/50 hover:text-red-800 dark:hover:text-red-300" onClick={() => handleDecline(parsed.loanId)}>
+                                                             <XCircle className="h-4 w-4 mr-1.5" /> Decline
+                                                        </Button>
+                                                        <Button size="sm" variant="outline" className="bg-gray-50 dark:bg-gray-700/30 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300" onClick={() => handleDetails(parsed.loanId)}>
+                                                            <Info className="h-4 w-4 mr-1.5" /> Details
+                                                        </Button>
+                                                    </>
+                                                )}
+
+                                                {notif.link && (
+                                                    <a
+                                                        href={notif.link}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 ${
+                                                            parsed.actions ? 'ml-auto' : ''
+                                                        }`}
+                                                        onClick={(e) => e.stopPropagation()}
                                                     >
-                                                         <CheckCircle className="h-4 w-4 mr-1.5" /> Approve
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-800/50 hover:text-red-800 dark:hover:text-red-300"
-                                                        onClick={() => handleDecline(parsed.loanId)}
-                                                    >
-                                                         <XCircle className="h-4 w-4 mr-1.5" /> Decline
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        className="bg-gray-50 dark:bg-gray-700/30 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300"
-                                                        onClick={() => handleDetails(parsed.loanId)}
-                                                    >
-                                                        <Info className="h-4 w-4 mr-1.5" /> Details
-                                                    </Button>
-                                                </div>
-                                            )}
+                                                        <LinkIcon className="h-4 w-4 mr-1.5" /> Visit Link
+                                                    </a>
+                                                )}
+                                             </div>
                                         </div>
 
                                         <div className="absolute top-3 right-3 flex items-center space-x-2">
@@ -168,7 +185,7 @@ export default function NotificationsPage() {
                                                 <MailCheck className="h-4 w-4" />
                                             </button>
 
-                                            {!notif.read && (
+                                             {!notif.read && (
                                                 <div className="h-2.5 w-2.5 rounded-full bg-blue-500 flex-shrink-0" title="Unread"></div>
                                             )}
                                         </div>

@@ -7,7 +7,9 @@ export interface Notification {
     type: 'approval' | 'message' | 'system';
     message: string;
     read: boolean; // Assuming backend will eventually support this
-    createdAt: string;
+    // Allow for various potential types after JSON stringification/parsing
+    timeCreated: string | number | Date;
+    link: string | null; // Add this if it's missing
 }
 
 export function useNotifications(pollInterval: number = 30000) {
@@ -32,13 +34,15 @@ export function useNotifications(pollInterval: number = 30000) {
 
             if (response.ok) {
                 const data: Notification[] = await response.json();
-                console.log(data);
-                // Sort by creation date, newest first
-                data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                // Sort based on attempting to parse timeCreated
+                data.sort((a, b) => {
+                    const dateA = new Date(a.timeCreated).getTime();
+                    const dateB = new Date(b.timeCreated).getTime();
+                    // Handle potential NaN from invalid dates during sort
+                    return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+                });
                 setNotifications(data);
-                // Update unread status - currently just checks if there are any notifications
-                // TODO: Update this logic when 'read' status is available
-                setHasUnread(data.length > 0); // Simple check for now
+                setHasUnread(data.some(n => !n.read)); // Better: check actual read status if available
             } else if (response.status === 401) {
                 // User might not be logged in, clear state
                 setNotifications([]);

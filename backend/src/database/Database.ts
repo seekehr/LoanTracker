@@ -80,6 +80,7 @@ interface BaseNotificationInterface {
     accountId: number
     type: 'approval' | 'message' | 'system'
     message: string   
+    link: string|null
 }
 
 interface NotificationsTable extends BaseNotificationInterface {

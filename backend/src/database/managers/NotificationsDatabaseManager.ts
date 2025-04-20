@@ -18,7 +18,8 @@ export default class NotificationsDatabaseManager implements IDatabaseManager {
                 id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                 accountId INT UNSIGNED NOT NULL,
                 type ENUM('approval', 'message', 'system') NOT NULL,
-                message VARCHAR(500) NOT NULL,
+                message VARCHAR(150) NOT NULL,
+                link VARCHAR(255) NULL,
                 \`read\` BOOLEAN NOT NULL DEFAULT FALSE,
                 timeCreated BIGINT NOT NULL,
                 FOREIGN KEY (accountId) REFERENCES accounts(id) ON DELETE CASCADE
@@ -43,6 +44,7 @@ export default class NotificationsDatabaseManager implements IDatabaseManager {
                 accountId: newNotification.accountId,
                 type: newNotification.type,
                 message: newNotification.message,
+                link: newNotification.link,
                 timeCreated: timeCreated,
                 read: false
             };

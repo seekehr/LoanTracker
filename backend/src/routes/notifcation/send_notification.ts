@@ -7,9 +7,8 @@ const router: Router = express.Router();
 
 router.post('/', async (req: Request, res: Response) => {
     try {
-        console.log("send notification called!");
-        const { username, type, message } = req.query;
-
+        let parsedLink: string|null = null;
+        let { username, type, message, link } = req.query;
         if (!username || !type || !message || typeof username !== 'string' || typeof type !== 'string' || typeof message !== 'string') {
             res.status(400).json({ 
                 error: 'Missing required parameters',
@@ -36,15 +35,21 @@ router.post('/', async (req: Request, res: Response) => {
             return;
         }
 
+        if (link && typeof link === 'string') {
+            parsedLink = String(req.query.link);
+        } else {
+            parsedLink = null;
+        }
+
         const newNotification: NewNotification = {
             accountId: targetAccountId,
             type: notificationType as 'approval' | 'message' | 'system', // Type assertion after validation
+            link: parsedLink,
             message: notificationMessage,
         };
 
         const notificationId = await notifsDb.createNotification(newNotification);
-
-        console.log("notification created successfully!");
+        
         res.status(201).json({
             message: 'Notification created successfully',
             notificationId: notificationId
